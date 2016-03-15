@@ -29,18 +29,21 @@ class Experiment():
 			action = ctagent.getAction(state)
 			env.doAction(action)
 			ctagent.learn(state, reward)
-			ctagent.lastaction = action
+			ctagent.lastaction = action['cards']
 			ctagent.laststate = state
 
 		for agent in agents:
 			state = env.getState()
 			playerCards = agent.getCurrentCards()
-			print agent.name, playerCards
 			state['playerCards'] = playerCards
 			if not playerCards:
 				winner = agent.name
 			reward = env.getReward(agent)
 			ctagent.learn(state, reward)
+
+		for agent in agents:
+			if agent.controller.turn % 10 == 0:
+				agent.saveNet()
 
 		env.resetEnv()
 		print winner, ' wins!'

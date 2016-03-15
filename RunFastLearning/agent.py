@@ -42,7 +42,7 @@ class RunFastAgent(Player):
         self.turn = turn
 
     def setTurn(self, turn):
-        self.turn = turn
+        self.controller.turn = turn
 
     def getAction(self, state):
         '''
@@ -132,7 +132,12 @@ class RunFastAgent(Player):
 
         self.controller.train(input, tagetValue)
         # 如果没有下一个value的话，就说明我们的这个episode结束了，我们就把训练好的神经网络存入文件中
-        if qNextValues:
-            if not os.path.isdir(self.name):
-                os.mkdir(self.name)
-            self.controller.saveNet(self.name + '/net' + str(self.turn))
+        # if not qNextValues:
+        #     if not os.path.isdir(self.name):
+        #         os.mkdir(self.name)
+        #     self.controller.saveNet(self.name + '/net' + str(self.turn))
+
+    def saveNet(self):
+        if not os.path.isdir(self.controller.name):
+            os.mkdir(self.controller.name)
+        self.controller.saveNet()

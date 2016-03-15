@@ -85,6 +85,7 @@ class RunFast():
         self.whoPlayed = self.currentTurn
         self.currentCard = playedCards
         self.currentType = playedType
+        self.havePlayed += playedCards
         if self.currentTurn > 1:
             self.currentTurn = 0
         else:
