@@ -10,7 +10,7 @@ def main():
 	agents = []
 	winners = {}
 	startTurn = 0
-	loopNum = 20
+	loopNum = 1000000
 
 	if os.path.isfile('winners'):
 		with open('winners', 'r') as f:

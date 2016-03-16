@@ -42,7 +42,7 @@ class Experiment():
 			ctagent.learn(state, reward)
 
 		for agent in agents:
-			if agent.controller.turn % 10 == 0:
+			if agent.controller.turn % 50000 == 0:
 				agent.saveNet()
 
 		env.resetEnv()
