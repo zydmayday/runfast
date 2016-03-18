@@ -54,13 +54,12 @@ class RunFastEnvironment(RunFast):
 		ct = self.currentTurn
 		playedCards = action['cards']
 		playedType = action['type']
-		time.sleep(0.01)
 		if playedCards:
 			# 如果是实际出牌的话
+			print self.players[ct].name, 'has', self.players[ct].getCurrentCards()
+			print self.players[ct].name, 'played', playedCards
 			self.players[ct].removeCards(playedCards)
 			self.moveToNext(playedCards, playedType)
-			# print self.players[ct].name, 'played', playedCards
-			# print self.players[ct].name, 'has', self.players[ct].getCurrentCards()
 		else:
 			self.passToNext()
 			# print self.players[ct].name, 'choose PASS'

@@ -225,6 +225,9 @@ class Player():
         '''
         self.cards.append(card)
 
+    def recieveCards(self, cards):
+        self.cards = cards
+
     def _natural_sort(self, l): 
         convert = lambda text: int(text) if text.isdigit() else text.lower() 
         alphanum_key = lambda key: [ convert(c) for c in re.split('([0-9]+)', key) ] 
@@ -468,57 +471,141 @@ class Player():
     def getPlane(self, cards, preCards=None):
         '''
         打飞机。三个头的连只加两个单张或者是对子
+        prelen means the # of three cards
+        return type is index, not the number of cards
         '''
         returnCards = []
         cardsLen = len(cards)
         preCardsDict = {'num':0,'len':0, 'type':1}
+
         if preCards:
+            '''
+            here we need to condider the different situations
+            if we have the cards like : 333,444,555,666, we default that the player played [444555666]+333, then preNum should be 4,
+            otherwise, if we have the cards form like 333444555,777, then the preNum should be 3. There is one another situation that we should consider: 555,6666,7, or the similar form like 4444,5555,6666
+            these are not gonna happen in the real games, but they are still the situations we should consider about.
+            the other case we should consider:
+            333,444,5,7
+            333,444,55,77
+            333,444,555,77,8
+            333,444,555,7,8,9
+            333,444,555,77,88,99
+            333,444,555,7777,99
+            since we have so many types of the cards form, but they all obey the rules that 3+1 has cards number(4n), and the 3+2 cards has the cards number(5n).
+
+            I think there may still be some bugs in this algorithm, maybe I will find them in the future tests.
+            '''
             countedPreCards = Counter(preCards)
-            # print 'countedPreCards',countedPreCards
-            preNum = 100
-            preLen = 0
-            preType = 1
-            for key in countedPreCards.keys():
-                if countedPreCards[key] == 3:
-                    preLen += 1
-                    if countedPreCards[key] < preNum:
-                        preNum = key
-            preCardsDict = {'num': preNum, 'len': preLen, 'type': len(preCards)/preLen-3}
-        
+            if preCards:
+                preNum = 0
+                preType = 1
+                preCardsLen = len(preCards)
+                preList = [key for key, value in countedPreCards.items() if value == 3]
+                preList.sort()
+                if preCardsLen % 5 == 0:
+                    preLen = len(preList)
+                    preNum = preList[0]
+                    preType = 2
+                    preLen = len(preList)
+                else:
+                    preList = [key for key, value in countedPreCards.items() if value >= 3]
+                    preList.sort()
+                    preNum = preList[0]
+                    preLen = len(preList)
+                    if len(preList) == 4 and preCardsLen == 12 or len(preList) == 5 and preCardsLen == 16:
+                        preLen = len(preList) - 1
+                        if preList[-2] == preList[-1]-1:
+                            preNum = preList[1]
+
+            preCardsDict = {'num': preNum, 'len': preLen, 'type': preType}
+            print 'preCardsDict', preCardsDict
         contiThrees, type = self.getContiThree(cards)
-        # print 'contiThrees',contiThrees
+        print 'contiThrees', contiThrees
         for ct in contiThrees:
             if preCards:
-                if cards[ct[0]] > preCardsDict['num']:
-                    # 如果是飞机带两个单张的话
-                    if preCardsDict['type'] == 1:
-                        for i in range(0, cardsLen-1):
-                            if i not in ct:
-                                for j in range(i+1, cardsLen):
-                                    if j not in ct:
-                                        returnCards.append(ct + [i,j])
-                    else:
-                        pairs, type = self.getPairs(cards)
-                        for i in range(0, len(pairs)-1):
-                            if pairs[i][0] not in ct and pairs[i][1] not in ct:
-                                for j in range(i+1, len(pairs)):
-                                    if pairs[j][0] not in ct and pairs[j][1] not in ct:
-                                        returnCards.append(ct + pairs[i] + pairs[j])               
+                if len(ct) / 3 == preCardsDict['len']:
+                    print ct
+                    # print cards[ct[0]] > preCardsDict['num']
+                    if cards[ct[0]] > preCardsDict['num']:
+                        idx = 0
+                        loopNum = preCardsDict['len']
+                        # 如果是飞机带单张的话
+                        if preCardsDict['type'] == 1:
+                            print 'play single'
+                            singleList = []
+                            while idx < loopNum:
+                                if not singleList:
+                                    for i in range(cardsLen-loopNum+idx+1):
+                                        if i not in ct:
+                                            singleList.append([i])
+                                else:
+                                    for list in singleList:
+                                        start = list[-1]
+                                        for j in range(start+1, cardsLen-loopNum+idx+1):
+                                            if j not in ct:
+                                                singleList.append(list[:] + [j])
+                                idx += 1
+                            singleList = [list for list in singleList if len(list) == loopNum]
+                            print 'singleList', singleList
+                            for list in singleList:
+                                returnCards.append(ct + list)
+                        else:
+                            pairs, type = self.getPairs(cards)
+                            pairs = [pair for pair in pairs if pair[0] not in ct and pair[1] not in ct]
+                            idx = 0
+                            pairsList = []
+                            while idx < loopNum:
+                                if not pairsList:
+                                    for i in pairs:
+                                        pairsList.append(i)
+                                else:
+                                    for list in pairsList:
+                                        start = pairs.index([list[-2], list[-1]])
+                                        for j in range(start+1, len(pairs)-loopNum+idx+1):
+                                            if pairs[j][0] not in list and pairs[j][1] not in list:
+                                                pairsList.append(list[:] + pairs[j])
+                                idx += 1
+                            pairsList = [list for list in pairsList if len(list) == loopNum*2]
+                            for list in pairsList:
+                                returnCards.append(ct + list)
             else:
-                # 如果是飞机带两个单张的话
-                    if preCardsDict['type'] == 1:
-                        for i in range(0, cardsLen-1):
+                idx = 0
+                loopNum = len(ct) / 3
+                singleList = []
+                while idx < loopNum:
+                    if not singleList:
+                        for i in range(cardsLen-loopNum+idx+1):
                             if i not in ct:
-                                for j in range(i+1, cardsLen):
-                                    if j not in ct:
-                                        returnCards.append(ct + [i,j])
+                                singleList.append([i])
                     else:
-                        pairs, type = self.getPairs(cards)
-                        for i in range(0, len(pairs)-1):
-                            if pairs[i][0] not in ct and pairs[i][1] not in ct:
-                                for j in range(i+1, len(pairs)):
-                                    if pairs[j][0] not in ct and pairs[j][1] not in ct:
-                                        returnCards.append(ct + pairs[i] + pairs[j])
+                        for list in singleList:
+                            start = list[-1]
+                            for j in range(start+1, cardsLen-loopNum+idx+1):
+                                if j not in ct:
+                                    singleList.append(list[:] + [j])
+                    idx += 1
+                singleList = [list for list in singleList if len(list) == loopNum]
+
+                for list in singleList:
+                    returnCards.append(ct + list)
+                pairs, type = self.getPairs(cards)
+                pairs = [pair for pair in pairs if pair[0] not in ct and pair[1] not in ct]
+                idx = 0
+                pairsList = []
+                while idx < loopNum:
+                    if not pairsList:
+                        for i in pairs:
+                            pairsList.append(i)
+                    else:
+                        for list in pairsList:
+                            start = pairs.index([list[-2], list[-1]])
+                            for j in range(start+1, len(pairs)-loopNum+idx+1):
+                                if pairs[j][0] not in list and pairs[j][1] not in list:
+                                    pairsList.append(list[:] + pairs[j])
+                    idx += 1
+                pairsList = [list for list in pairsList if len(list) == loopNum*2]
+                for list in pairsList:
+                    returnCards.append(ct + list)
         return returnCards, 'PLANE'
 
     def getFlush(self, rawCards, preCards=None):
@@ -757,7 +844,15 @@ class Player():
 
 
 if __name__ == '__main__':
-    pass
+    p = Player('zyd')
+    cards = ['5A', '5C', '5D', '5C', '4A', '4C', '4B', '4C', '6A', '6B', '6A', '6C', '9A', '7A', '7A', '9A']
+    print cards
+    currentCards = [int(card[0:-1]) for card in cards]
+    print p.getPlane(currentCards, [4,4,4,5,5,5,4,5,3,3,3,6])
+    # , [3,3,3,4,4,4,5,5,5,6,6,6,7,7,7,8]
+
+    # print int('4') < 3
+
     # players = []
     # players.append(Player('zyd'))
     # players.append(Player('zwx'))

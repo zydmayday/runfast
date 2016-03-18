@@ -9,7 +9,7 @@ def main():
 	nws = []
 	agents = []
 	winners = {}
-	startTurn = 0
+	startTurn = 170
 	loopNum = 1000000
 
 	if os.path.isfile('winners'):
@@ -17,7 +17,7 @@ def main():
 			winners = pickle.load(f)
 	for i in range(0, 3):
 		nw = RunFastNetwork('player' + str(i))
-		nw.loadNet('player' + str(i), 10)
+		nw.loadNet('player' + str(i), startTurn)
 		rfa = RunFastAgent('player' + str(i), nw)
 		nws.append(nw)
 		agents.append(rfa)
@@ -35,6 +35,10 @@ def main():
 			winners[winner] += 1
 		else:
 			winners[winner] = 1
+
+		if i % 10000 == 0:
+			with open('winners', 'w') as f:
+				pickle.dump(winners, f)
 
 	print winners
 	with open('winners', 'w') as f:
