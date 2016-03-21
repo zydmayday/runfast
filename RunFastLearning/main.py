@@ -5,6 +5,7 @@ from agent import RunFastAgent
 from controller import RunFastNetwork
 import pickle
 import os
+from collections import defaultdict
 
 def trainQValueNetwork(loopNum=1000000, startTurn=0):
 	'''
@@ -56,7 +57,7 @@ def testQValueNetwork(startTurn=0, loopNum=1000, testName='player0'):
 	winNums = {20000: 57777, 40000:69999,...}
 	'''
 	agents = []
-	winNums = {}
+	winNums = defaultdict(int)
 	if os.path.isfile('win_nums'):
 		with open('win_nums', 'r') as f:
 			winNums = pickle.load(f)
@@ -74,13 +75,9 @@ def testQValueNetwork(startTurn=0, loopNum=1000, testName='player0'):
 	print 'set up the experiment'
 
 	for i in range(startTurn, startTurn + loopNum):
-		winner = exp.doTest(testName)
-		if winner == testName:
-			if winNums.has_key(startTurn):
-				winNums[startTurn] += 1
-			else:
-				winNums[startTurn] = 1
-			print testName, ' won (', winNums[startTurn], '/', i-startTurn, ')'
+		winners = exp.doTest(testName)
+		winNums[startTurn] += winners[testName]
+		print testName, ' got (', winNums[startTurn], '/', i-startTurn, ')'
 
 	print winNums
 	with open('win_nums', 'w') as f:
@@ -88,5 +85,6 @@ def testQValueNetwork(startTurn=0, loopNum=1000, testName='player0'):
 
 if __name__ == '__main__':
 	# trainQValueNetwork()
-	for i in range(20000,1000000,10000):
+	for i in range(0,1000000,10000):
 		testQValueNetwork(startTurn=i, loopNum=10000)
+	# testQValueNetwork(startTurn=0, loopNum=10)

@@ -97,6 +97,7 @@ class StateNetwork():
 		return output
 
 if __name__ == '__main__':
+	pass
 	# rfn = RunFastNetwork()
 	# rfn.train([1,2,3], 2)
 	# print rfn.getValue([1,2,3,])

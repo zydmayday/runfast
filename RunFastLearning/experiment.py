@@ -70,14 +70,22 @@ class Experiment():
 
 			env.doAction(action)
 
+		winners = {'player0': None, 'player1': None, 'player2': None, 'name': ''}
+		winValue = 0
+
 		for agent in agents:
 			playerCards = agent.getCurrentCards()
+			print agent.name, playerCards
 			if not playerCards:
-				winner = agent.name
+				winners['name'] = agent.name
+			else:
+				winners[agent.name] = -len(playerCards)
+				winValue += len(playerCards)
+		winners[winners['name']] = winValue
 
 		env.resetEnv()
-		print winner, ' wins!'
-		return winner
+		print winners
+		return winners
 
 	def trainState(self, stateNetwork):
 		agents = self.agents
