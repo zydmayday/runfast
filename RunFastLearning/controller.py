@@ -2,7 +2,6 @@
 from pybrain.tools.shortcuts import buildNetwork
 from pybrain.supervised.trainers import BackpropTrainer
 from pybrain.datasets import SupervisedDataSet
-from pybrain.structure import FeedForwardNetwork, LinearLayer, SigmoidLayer, FullConnection
 import pickle
 import os
 
@@ -55,6 +54,7 @@ class RunFastNetwork():
 	# 	self.layers['hidden_to_out'] = hidden_to_out
 	# 	return n
 		# self.net = n
+
 
 if __name__ == '__main__':
 	rfn = RunFastNetwork()
