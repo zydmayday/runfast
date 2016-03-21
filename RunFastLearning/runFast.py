@@ -518,20 +518,19 @@ class Player():
                             preNum = preList[1]
 
             preCardsDict = {'num': preNum, 'len': preLen, 'type': preType}
-            print 'preCardsDict', preCardsDict
+            # print 'preCardsDict', preCardsDict
         contiThrees, type = self.getContiThree(cards)
-        print 'contiThrees', contiThrees
+        # print 'contiThrees', contiThrees
         for ct in contiThrees:
             if preCards:
                 if len(ct) / 3 == preCardsDict['len']:
-                    print ct
-                    # print cards[ct[0]] > preCardsDict['num']
+                    # print ct
                     if cards[ct[0]] > preCardsDict['num']:
                         idx = 0
                         loopNum = preCardsDict['len']
                         # 如果是飞机带单张的话
                         if preCardsDict['type'] == 1:
-                            print 'play single'
+                            # print 'play single'
                             singleList = []
                             while idx < loopNum:
                                 if not singleList:
@@ -546,7 +545,7 @@ class Player():
                                                 singleList.append(list[:] + [j])
                                 idx += 1
                             singleList = [list for list in singleList if len(list) == loopNum]
-                            print 'singleList', singleList
+                            # print 'singleList', singleList
                             for list in singleList:
                                 returnCards.append(ct + list)
                         else:
