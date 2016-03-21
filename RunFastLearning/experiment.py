@@ -49,4 +49,59 @@ class Experiment():
 		print winner, ' wins!'
 		return winner
 
+	def doTest(self, testName):
+		'''
+		具体的进行测试，一个玩家使用网络，另外两个玩家随机
+		'''
+		print 'start one game'
+		agents = self.agents
+		env = self.env
+		env.doReadyWork(agents)
+		winner = ''
+		while not env.isOver():
+			ct = env.currentTurn
+			ctagent = agents[ct]
+			state = env.getState()
+			action = []
+			if ctagent.name == testName:
+				action = ctagent.getBestAction(state)
+			else:
+				action = ctagent.getAction(state)
+
+			env.doAction(action)
+
+		for agent in agents:
+			playerCards = agent.getCurrentCards()
+			if not playerCards:
+				winner = agent.name
+
+		env.resetEnv()
+		print winner, ' wins!'
+		return winner
+
+	def trainState(self, stateNetwork):
+		agents = self.agents
+		env = self.env
+		env.doReadyWork(agents)
+		while not env.isOver():
+			ct = env.currentTurn
+			ctagent = agents[ct]
+			state = env.getState()
+			action = ctagent.getAction(state)
+			env.doAction(action)
+
+		for agent in agents:
+			state = env.getState()
+			playerCards = agent.getCurrentCards()
+			state['playerCards'] = playerCards
+			if not playerCards:
+				winner = agent.name
+			reward = env.getReward(agent)
+			ctagent.learn(state, reward)
+
+		for agent in agents:
+			if agent.controller.turn % 10000 == 0:
+				agent.saveNet()
+
+		env.resetEnv()
 

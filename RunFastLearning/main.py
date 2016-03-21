@@ -1,3 +1,4 @@
+# coding:utf-8
 from experiment import Experiment
 from environment import RunFastEnvironment
 from agent import RunFastAgent
@@ -5,14 +6,15 @@ from controller import RunFastNetwork
 import pickle
 import os
 
-def main():
+def trainQValueNetwork(loopNum=1000000, startTurn=0):
+	'''
+	通过让三个agent互相玩游戏，然后来训练出一个Q值网络
+	'''
 	nws = []
 	agents = []
 	winners = {}
-	startTurn = 0
-	loopNum = 1000000
-	if os.path.isfile('winners'):
-		with open('winners', 'r') as f:
+	if os.path.isfile('train_winners'):
+		with open('train_winners', 'r') as f:
 			winners = pickle.load(f)
 			startTurn = sum([v for i,v in winners.items()]) + 1
 
@@ -38,12 +40,53 @@ def main():
 			winners[winner] = 1
 
 		if i % 10000 == 0:
-			with open('winners', 'w') as f:
+			with open('train_winners', 'w') as f:
 				pickle.dump(winners, f)
 
 	print winners
-	with open('winners', 'w') as f:
+	with open('train_winners', 'w') as f:
 		pickle.dump(winners, f)
 
+def trainStateTransitionNetwork():
+	pass
+
+def testQValueNetwork(startTurn=0, loopNum=1000, testName='player0'):
+	'''
+	其中一个玩家使用训练好的网络，其他两个agent随机出牌，记录胜率
+	winNums = {20000: 57777, 40000:69999,...}
+	'''
+	agents = []
+	winNums = {}
+	if os.path.isfile('win_nums'):
+		with open('win_nums', 'r') as f:
+			winNums = pickle.load(f)
+
+	print 'loading agents'
+	for i in range(0, 3):
+		nw = RunFastNetwork('player' + str(i))
+		nw.loadNet('player' + str(i), startTurn)
+		rfa = RunFastAgent('player' + str(i), nw)
+		agents.append(rfa)
+		 
+	env = RunFastEnvironment()
+	exp = Experiment(env, agents)
+
+	print 'set up the experiment'
+
+	for i in range(startTurn, startTurn + loopNum):
+		winner = exp.doTest(testName)
+		if winner == testName:
+			if winNums.has_key(startTurn):
+				winNums[startTurn] += 1
+			else:
+				winNums[startTurn] = 1
+			print testName, ' won (', winNums[startTurn], '/', i-startTurn, ')'
+
+	print winNums
+	with open('win_nums', 'w') as f:
+		pickle.dump(winNums, f)
+
 if __name__ == '__main__':
-	main()
+	# trainQValueNetwork()
+	for i in range(20000,1000000,10000):
+		testQValueNetwork(startTurn=i, loopNum=10000)

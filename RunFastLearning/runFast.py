@@ -47,7 +47,7 @@ class RunFast():
         self.currentTurn = 0
         self.currentCard = [] # 当前场上打出的牌
         self.currentType = []
-        self.whoPlayed = 0
+        self.whoPlayed = -1
         self.havePlayed = []
             
     def shuffle(self):
@@ -681,7 +681,7 @@ class Player():
             else:
                 return 'FLUSH'
 
-    def getCardsCanPlay(self, preType=None, preCards=None):
+    def getCardsCanPlay(self, preType=None, preCards=None, isFirst=False):
         playIndexes = []
         playType = ''
         currentCards = [int(card[0:-1]) for card in self.cards]
@@ -690,6 +690,11 @@ class Player():
             preCardsTemp = [int(card[0:-1]) for card in preCards]
         preCardsTemp.sort()
         playIndexesDict = {}
+
+        hartThree = 0
+        if isFirst:
+            hartThree = self.cards.index(HART3)
+
         if preCards:
             if preType == 'SINGLE':
                 playIndexes,playType = self.getSingle(currentCards, preCardsTemp)
@@ -717,30 +722,48 @@ class Player():
         else:
             playIndexes,playType = self.getSingle(currentCards)
             if playIndexes:
+                if isFirst:
+                    playIndexes = [i for i in playIndexes if hartThree in i]
                 playIndexesDict[playType] = playIndexes[:]
             playIndexes,playType = self.getPairs(currentCards)
             if playIndexes:
+                if isFirst:
+                    playIndexes = [i for i in playIndexes if hartThree in i]
                 playIndexesDict[playType] = playIndexes[:]
             playIndexes,playType = self.getThree(currentCards)
             if playIndexes:
+                if isFirst:
+                    playIndexes = [i for i in playIndexes if hartThree in i]
                 playIndexesDict[playType] = playIndexes[:]
             playIndexes,playType = self.getBomb(self.cards[:])
             if playIndexes:
+                if isFirst:
+                    playIndexes = [i for i in playIndexes if hartThree in i]
                 playIndexesDict[playType] = playIndexes[:]
             playIndexes,playType = self.getContiPairs(currentCards)
             if playIndexes:
+                if isFirst:
+                    playIndexes = [i for i in playIndexes if hartThree in i]
                 playIndexesDict[playType] = playIndexes[:]
             playIndexes,playType = self.getThreeTwo(currentCards)
             if playIndexes:
+                if isFirst:
+                    playIndexes = [i for i in playIndexes if hartThree in i]
                 playIndexesDict[playType] = playIndexes[:]
             playIndexes,playType = self.getFlush(self.cards[:])
             if playIndexes:
+                if isFirst:
+                    playIndexes = [i for i in playIndexes if hartThree in i]
                 playIndexesDict[playType] = playIndexes[:]
             playIndexes,playType = self.getContiThree(currentCards)
             if playIndexes:
+                if isFirst:
+                    playIndexes = [i for i in playIndexes if hartThree in i]
                 playIndexesDict[playType] = playIndexes[:]
             playIndexes,playType = self.getPlane(currentCards)
             if playIndexes:
+                if isFirst:
+                    playIndexes = [i for i in playIndexes if hartThree in i]
                 playIndexesDict[playType] = playIndexes[:]
 
         return playIndexesDict

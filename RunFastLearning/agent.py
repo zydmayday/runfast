@@ -3,6 +3,8 @@ __author__ = 'zhangyidong'
 
 from runFast import Player, RunFast
 import os, sys
+from collections import Counter
+import time
 
 NNINPUT = ['14A','15A','3A','4A','5A','6A','7A','8A','9A','10A','11A','12A','13A',
         '14B','3B','4B','5B','6B','7B','8B','9B','10B','11B','12B','13B',
@@ -64,23 +66,38 @@ class RunFastAgent(Player):
         '''
         preCards = state['preCards']
         preType = state['preType']
-        cardsCanPlay = self.getCardsCanPlay(preType, preCards)
+        isFirst = state['isFirst']
+        cardsCanPlay = self.getCardsCanPlay(preType, preCards, isFirst)
         return cardsCanPlay
 
     def getBestAction(self, state):
-        preCards = state['preCards']
-        preType = state['preType']
-        actionDict = self.getActions(preType, preCards)
+        '''
+        这里有几种方法来实现，先说最简单的。
+        直接对当前的状态s取各个可能的action的Q值，max的那个a就可以作为best
+        '''
+        actionDict = self.getActions(state)
+        # time.sleep(1)
+        # print actionDict
         bestAction = []
-        bestValue = 0
+        bestType = None
+        bestValue = None
         for naType in actionDict.keys():
+            # print naType
             for a in actionDict[naType]:
-                inp = self.getInput(nextState, a)
+                # print a
+                inp = self.getInput(state, a)
                 value = self.controller.getValue(inp)
-                if value > bestValue:
+                if not bestValue:
                     bestValue = value
+                    bestType = naType
                     bestAction = a
-        return bestAction
+                if  value > bestValue:
+                    bestValue = value
+                    bestType = naType
+                    bestAction = a
+
+        playCards = [self.cards[i] for i in bestAction]
+        return {'cards': playCards, 'type': bestType}
 
 
     def getInput(self, state, action):

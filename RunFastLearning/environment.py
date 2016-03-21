@@ -14,6 +14,10 @@ class RunFastEnvironment(RunFast):
 		RunFast.__init__(self)
 
 	def doReadyWork(self, agents):
+		'''
+		做一些准备工作，如果环境中没有agents，则传入agents
+		洗牌，发牌，设定好谁先走等
+		'''
 		if not self.players:
 			self.addPlayer(agents)
 		self.shuffle()
@@ -56,8 +60,8 @@ class RunFastEnvironment(RunFast):
 		playedType = action['type']
 		if playedCards:
 			# 如果是实际出牌的话
-			print self.players[ct].name, 'has', self.players[ct].getCurrentCards()
-			print self.players[ct].name, 'played', playedCards
+			# print self.players[ct].name, 'has', self.players[ct].getCurrentCards()
+			# print self.players[ct].name, 'played', playedCards
 			self.players[ct].removeCards(playedCards)
 			self.moveToNext(playedCards, playedType)
 		else:
