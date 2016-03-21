@@ -58,6 +58,12 @@ class RunFastNetwork():
 	# 	return n
 		# self.net = n
 
+class RunFastDeepNetwork(RunFastNetwork):
+
+	def __init(self, layers=[192,192,192,192,192,1]):
+		RunFastNetwork.__init__(self)
+		self.net = buildNetwork(layers)
+
 class StateNetwork():
 	'''
 	用来存储状态转移的函数的，具体来说就是我给定一个input，返回给我下一个时刻的状态

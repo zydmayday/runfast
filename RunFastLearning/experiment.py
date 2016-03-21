@@ -10,6 +10,11 @@ class Experiment():
 		for a in self.agents:
 			a.setTurn(turn)
 
+	def reset(self):
+		self.env.resetEnv()
+		for a in self.agents:
+			a.reset()
+
 	def doEpisode(self):
 		'''
 		保存三个agent需要的state
@@ -45,7 +50,7 @@ class Experiment():
 			if agent.controller.turn % 10000 == 0:
 				agent.saveNet()
 
-		env.resetEnv()
+		self.reset()
 		print winner, ' wins!'
 		return winner
 
@@ -83,7 +88,7 @@ class Experiment():
 				winValue += len(playerCards)
 		winners[winners['name']] = winValue
 
-		env.resetEnv()
+		self.reset()
 		print winners
 		return winners
 

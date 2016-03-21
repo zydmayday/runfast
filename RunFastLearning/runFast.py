@@ -185,7 +185,7 @@ class RunFast():
         self.currentTurn = 0
         self.currentCard = [] 
         self.currentType = []
-        self.whoPlayed = 0
+        self.whoPlayed = -1
         for p in self.players:
             p.clearCards()
 

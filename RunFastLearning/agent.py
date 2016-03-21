@@ -31,7 +31,7 @@ class RunFastAgent(Player):
     函数都是通过experiment进行调用
     '''
 
-    def __init__(self, name, controller, alpha=0.5, gamma=0.9, turn=0):
+    def __init__(self, name, controller, alpha=0.5, gamma=0.9):
         '''
         存储laststate，以便在新的state到来的时候更新controller
         '''
@@ -41,10 +41,13 @@ class RunFastAgent(Player):
         self.lastaction = None
         self.alpha = alpha
         self.gamma = gamma
-        self.turn = turn
 
     def setTurn(self, turn):
         self.controller.turn = turn
+
+    def reset(self):
+        self.laststate = None 
+        self.lastaction = None
 
     def getAction(self, state):
         '''
@@ -158,3 +161,5 @@ class RunFastAgent(Player):
         if not os.path.isdir(self.controller.name):
             os.mkdir(self.controller.name)
         self.controller.saveNet()
+
+

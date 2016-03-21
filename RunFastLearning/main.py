@@ -2,7 +2,7 @@
 from experiment import Experiment
 from environment import RunFastEnvironment
 from agent import RunFastAgent
-from controller import RunFastNetwork
+from controller import RunFastNetwork, RunFastDeepNetwork
 import pickle
 import os
 from collections import defaultdict
@@ -20,9 +20,10 @@ def trainQValueNetwork(loopNum=1000000, startTurn=0):
 			startTurn = sum([v for i,v in winners.items()]) + 1
 
 	for i in range(0, 3):
-		nw = RunFastNetwork('player' + str(i))
-		nw.loadNet('player' + str(i), startTurn)
-		rfa = RunFastAgent('player' + str(i), nw)
+		playerName = 'player' + str(i)
+		nw = RunFastNetwork(playerName)
+		nw.loadNet(playerName, startTurn)
+		rfa = RunFastAgent(playerName, nw)
 		nws.append(nw)
 		agents.append(rfa)
 		 
@@ -48,6 +49,41 @@ def trainQValueNetwork(loopNum=1000000, startTurn=0):
 	with open('train_winners', 'w') as f:
 		pickle.dump(winners, f)
 
+def trainDeepNetwork(loopNum=1000000, startTurn=0):
+	nws = []
+	agents = []
+	winners = {}
+	if os.path.isfile('deep_train_winners'):
+		with open('deep_train_winners', 'r') as f:
+			winners = pickle.load(f)
+			startTurn = sum([v for i,v in winners.items()]) + 1
+
+	for i in range(0, 3):
+		playerName = 'deep_player' + str(i)
+		nw = RunFastDeepNetwork(playerName)
+		nw.loadNet(playerName, startTurn)
+		rfa = RunFastAgent(playerName, nw)
+		nws.append(nw)
+		agents.append(rfa)
+		 
+	for k in winners.keys():
+		startTurn += winners[k]
+
+	env = RunFastEnvironment()
+	exp = Experiment(env, agents)
+
+	for i in range(startTurn, startTurn + loopNum):
+		exp.setAgentsTurn(i)
+		winner = exp.doEpisode()
+		if winners.has_key(winner):
+			winners[winner] += 1
+		else:
+			winners[winner] = 1
+
+	print winners
+	with open('deep_train_winners', 'w') as f:
+		pickle.dump(winners, f)
+
 def trainStateTransitionNetwork():
 	pass
 
@@ -65,7 +101,7 @@ def testQValueNetwork(startTurn=0, loopNum=1000, testName='player0'):
 	print 'loading agents'
 	for i in range(0, 3):
 		nw = RunFastNetwork('player' + str(i))
-		nw.loadNet('player' + str(i), startTurn)
+		# nw.loadNet('player' + str(i), startTurn)
 		rfa = RunFastAgent('player' + str(i), nw)
 		agents.append(rfa)
 		 
@@ -92,6 +128,7 @@ def testQValueNetwork(startTurn=0, loopNum=1000, testName='player0'):
 
 if __name__ == '__main__':
 	# trainQValueNetwork()
-	for i in range(0,1000000,10000):
-		testQValueNetwork(startTurn=i, loopNum=10000)
-	# testQValueNetwork(startTurn=60, loopNum=10)
+	trainDeepNetwork(loopNum=100)
+	# for i in range(0,1000000,10000):
+	# 	testQValueNetwork(startTurn=i, loopNum=10000)
+	# testQValueNetwork(startTurn=10000000, loopNum=100, testName='player1')
