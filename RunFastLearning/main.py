@@ -135,7 +135,7 @@ def testQValueNetwork(startTurn=0, loopNum=1000, testName='player0'):
 
 if __name__ == '__main__':
 	# trainQValueNetwork()
-	trainDeepNetwork(loopNum=100)
+	trainDeepNetwork()
 	# for i in range(0,1000000,10000):
 	# 	testQValueNetwork(startTurn=i, loopNum=10000)
 	# testQValueNetwork(startTurn=10000000, loopNum=100, testName='player1')
