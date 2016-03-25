@@ -2,13 +2,17 @@
 
 class Experiment():
 
-	def __init__(self, env, agents):
+	def __init__(self, env, agents, stateNetwork=None):
 		self.env = env
 		self.agents = agents
+		if stateNetwork:
+			self.stateNet = stateNetwork
 
-	def setAgentsTurn(self, turn):
+	def setTurn(self, turn):
 		for a in self.agents:
 			a.setTurn(turn)
+		if self.stateNet:
+			self.stateNet.turn = turn
 
 	def reset(self):
 		self.env.resetEnv()
@@ -26,6 +30,9 @@ class Experiment():
 		agents = self.agents
 		env = self.env
 		env.doReadyWork(agents)
+
+		states = {1: None, 2: None, 0: None} # 记录三个agent的历史状态
+
 		while not env.isOver():
 			ct = env.currentTurn
 			ctagent = agents[ct]
@@ -37,6 +44,13 @@ class Experiment():
 			ctagent.lastaction = action['cards']
 			ctagent.laststate = state
 
+			# 训练state网络
+			if self.stateNet:
+				sn = self.stateNet
+				if states[ct]:
+					self.stateNet.train(states[ct], sn.getOutput(state))
+				states[ct] = sn.getInput(state, action)
+
 		for agent in agents:
 			state = env.getState()
 			playerCards = agent.getCurrentCards()
@@ -46,9 +60,19 @@ class Experiment():
 			reward = env.getReward(agent)
 			ctagent.learn(state, reward)
 
+			# 训练state网络
+			if self.stateNet:
+				sn = self.stateNet
+				if states[ct]:
+					self.stateNet.train(states[ct], sn.getOutput(state))
+				states[ct] = sn.getInput(state, action)
+
 		for agent in agents:
 			if agent.controller.turn % 10000 == 0:
 				agent.saveNet()
+
+		if self.stateNet and self.stateNet.turn % 10000 == 0:
+			self.stateNet.saveNet()
 
 		self.reset()
 		print winner, ' wins!'

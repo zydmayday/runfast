@@ -5,6 +5,7 @@ from pybrain.datasets import SupervisedDataSet
 import pickle
 import os
 import time
+from agent import RunFastAgent
 
 class RunFastNetwork():
 	'''
@@ -60,16 +61,17 @@ class RunFastNetwork():
 
 class RunFastDeepNetwork(RunFastNetwork):
 
-	def __init(self, layers=[192,192,192,192,192,1]):
-		RunFastNetwork.__init__(self)
-		self.net = buildNetwork(layers)
+	def __init__(self, name='', inputNum=192, hidden1Num=192, hidden2Num=192, hidden3Num=192, outNum=1):
+		RunFastNetwork.__init__(self, name)
+		self.net = buildNetwork(inputNum, hidden1Num, hidden2Num, hidden3Num, outNum)
 
 class StateNetwork():
 	'''
 	用来存储状态转移的函数的，具体来说就是我给定一个input，返回给我下一个时刻的状态
+	下一个时刻的状态不包括action
 	'''
-	def __init__(self, name='', inputNum=192, hiddenNum=192, outNum=192):
-		self.net = buildNetwork(inputNum, hiddenNum, outNum)
+	def __init__(self, name='deep_state', inputNum=192, hidden1Num=192, hidden2Num=192, hidden3Num=192, outNum=144):
+		self.net = buildNetwork(inputNum, hidden1Num, hidden2Num, hidden3Num, outNum)
 		self.ds = SupervisedDataSet(inputNum, outNum)
 		self.name = name
 		self.turn = 0
@@ -81,12 +83,14 @@ class StateNetwork():
 		trainer.train()
 
 
-	def saveNet(self, filename=''):
+	def saveNet(self):
+		if not os.path.isdir(self.name):
+			os.mkdir(self.name)
 		print self.name  + '/' + str(self.turn), ' has saved'
 		with open(self.name  + '/' + str(self.turn), 'w') as f:
 			pickle.dump(self.net, f)
 
-	def loadNet(self, dir, turn=0):
+	def loadNet(self, turn=0):
 		print 'loading ', self.name  + '/' + str(turn)
 		time.sleep(1)
 		if os.path.isfile(self.name  + '/' + str(turn)):
@@ -101,6 +105,13 @@ class StateNetwork():
 			else:
 				output[i] = 0
 		return output
+
+	def getInput(self, state, action):
+		return RunFastAgent.getInput(state, action)
+
+	def getOutput(self, state):
+		input = RunFastAgent.getInput(state, [])
+		return input[:144]
 
 if __name__ == '__main__':
 	pass

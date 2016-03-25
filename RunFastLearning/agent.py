@@ -5,6 +5,7 @@ from runFast import Player, RunFast
 import os, sys
 from collections import Counter
 import time
+import random
 
 NNINPUT = ['14A','15A','3A','4A','5A','6A','7A','8A','9A','10A','11A','12A','13A',
         '14B','3B','4B','5B','6B','7B','8B','9B','10B','11B','12B','13B',
@@ -49,19 +50,24 @@ class RunFastAgent(Player):
         self.laststate = None 
         self.lastaction = None
 
-    def getAction(self, state):
+    def getAction(self, state, epsilon=0.1):
         '''
-        根据当前的牌面状态选择一个action
+        根据当前的牌面状态选择一个action, 这里根据epsilon-greedy来进行选择
         return dict{cards，type}
         '''
-        preCards = state['preCards']
-        preType = state['preType']
-        if state['isFirst']:
-            return self.playCardsWithHart3()
-        if preCards:
-            return self.playRandomByPreCards(preType, preCards)
+        ranNum = random.random()
+        if ranNum <= epsilon:
+            print 'pick a action from random'
+            preCards = state['preCards']
+            preType = state['preType']
+            if state['isFirst']:
+                return self.playCardsWithHart3()
+            if preCards:
+                return self.playRandomByPreCards(preType, preCards)
+            else:
+                return self.playRandom()
         else:
-            return self.playRandom()
+            return self.getBestAction(state)
 
     def getActions(self, state):
         '''
@@ -102,7 +108,7 @@ class RunFastAgent(Player):
         playCards = [self.cards[i] for i in bestAction]
         return {'cards': playCards, 'type': bestType}
 
-
+    @ classmethod
     def getInput(self, state, action):
         '''
         获得当前的状态，供网络学习
