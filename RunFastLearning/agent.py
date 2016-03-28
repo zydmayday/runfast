@@ -57,7 +57,7 @@ class RunFastAgent(Player):
         '''
         ranNum = random.random()
         if ranNum <= epsilon:
-            print 'pick a action from random'
+            # print 'pick a action from random'
             preCards = state['preCards']
             preType = state['preType']
             if state['isFirst']:

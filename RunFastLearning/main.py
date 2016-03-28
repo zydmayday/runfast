@@ -94,22 +94,25 @@ def trainDeepNetwork(loopNum=1000000, startTurn=0):
 def trainStateTransitionNetwork():
 	pass
 
-def testQValueNetwork(startTurn=0, loopNum=1000, testName='player0'):
+def testQValueNetwork(startTurn=0, loopNum=1000, testName='player0', filename='win_nums', playerNamePrefix='player'):
 	'''
 	其中一个玩家使用训练好的网络，其他两个agent随机出牌，记录胜率
 	winNums = {20000: 57777, 40000:69999,...}
+	startTurn表示训练的神经网络的次数，loopNum表示test的次数
 	'''
 	agents = []
 	winNums = {}
-	if os.path.isfile('win_nums'):
-		with open('win_nums', 'r') as f:
+	if os.path.isfile(filename):
+		with open(filename, 'r') as f:
 			winNums = pickle.load(f)
 
 	print 'loading agents'
 	for i in range(0, 3):
-		nw = RunFastNetwork('player' + str(i))
-		# nw.loadNet('player' + str(i), startTurn)
-		rfa = RunFastAgent('player' + str(i), nw)
+		playerName = playerNamePrefix + str(i)
+		nw = RunFastDeepNetwork(playerName)
+		if playerName == testName:
+			nw.loadNet(playerName, startTurn)
+		rfa = RunFastAgent(playerName, nw)
 		agents.append(rfa)
 		 
 	env = RunFastEnvironment()
@@ -120,22 +123,22 @@ def testQValueNetwork(startTurn=0, loopNum=1000, testName='player0'):
 	for i in range(startTurn, startTurn + loopNum):
 		if not winNums.get(startTurn):
 			winNums[startTurn] = {}
-		winners = exp.doTest(testName)
+		testHistory = exp.doTest(testName)
 		for j in range(0,3):
-			playerName = 'player'+str(j)
-			if winNums[startTurn].get(playerName) == None:
-				winNums[startTurn][playerName] = winners[playerName]
+			playerName = playerNamePrefix + str(j)
+			if not winNums[startTurn].get(playerName):
+				winNums[startTurn][playerName] = testHistory[playerName]
 			else:
-				winNums[startTurn][playerName] += winners[playerName]
+				winNums[startTurn][playerName] += testHistory[playerName]
 		print str(i-startTurn), winNums
 
 	print winNums
-	with open('win_nums', 'w') as f:
+	with open(filename, 'w') as f:
 		pickle.dump(winNums, f)
 
 if __name__ == '__main__':
 	# trainQValueNetwork()
-	trainDeepNetwork()
-	# for i in range(0,1000000,10000):
-	# 	testQValueNetwork(startTurn=i, loopNum=10000)
+	# trainDeepNetwork()
+	for i in range(0,1000000,10000):
+		testQValueNetwork(startTurn=i, loopNum=100000, filename='deep_win_nums', playerNamePrefix='deep_player', testName='deep_player0')
 	# testQValueNetwork(startTurn=10000000, loopNum=100, testName='player1')

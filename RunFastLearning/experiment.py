@@ -93,28 +93,30 @@ class Experiment():
 			state = env.getState()
 			action = []
 			if ctagent.name == testName:
+				# print ctagent.name, 'get best action'
 				action = ctagent.getBestAction(state)
 			else:
+				# print ctagent.name, 'get random action'
 				action = ctagent.getAction(state)
 
 			env.doAction(action)
 
-		winners = {'player0': None, 'player1': None, 'player2': None, 'name': ''}
+		testHistory = {'player0': None, 'player1': None, 'player2': None, 'name': ''}
 		winValue = 0
 
 		for agent in agents:
 			playerCards = agent.getCurrentCards()
-			print agent.name, playerCards
+			# print agent.name, playerCards
 			if not playerCards:
-				winners['name'] = agent.name
+				testHistory['name'] = agent.name
 			else:
-				winners[agent.name] = -len(playerCards)
+				testHistory[agent.name] = -len(playerCards)
 				winValue += len(playerCards)
-		winners[winners['name']] = winValue
+		testHistory[testHistory['name']] = winValue
 
 		self.reset()
-		print winners
-		return winners
+		# print testHistory
+		return testHistory
 
 	def trainState(self, stateNetwork):
 		agents = self.agents
