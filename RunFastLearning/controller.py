@@ -31,7 +31,6 @@ class RunFastNetwork():
 
 	def loadNet(self, dir, turn=0):
 		print 'loading ', self.name  + '/' + str(turn)
-		time.sleep(1)
 		if os.path.isfile(self.name  + '/' + str(turn)):
 			with open(self.name  + '/' + str(turn), 'r') as f:
 				self.net = pickle.load(f)

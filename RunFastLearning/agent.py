@@ -132,12 +132,16 @@ class RunFastAgent(Player):
                 input[i] = 1
         return input
 
-    def learn(self, nextState, reward):
+    def learn(self, nextState, reward, lastState = None, lastAction = None):
         '''
         算出target Qvalue，传给控制器进行学习
         qvalue_n+1 = (1-alpha) * qvalue + alpha*(r + gamma * max(qvalue_next))
         怎么处理最后一次优化：最后一次时，我们获得了终盘的状态和回报，这时候，应该没有max（）的这一项了，因为没有action可走了，所有去掉这一项
         '''
+
+        if lastState and lastAction:
+            self.laststate = lastState
+            self.lastaction = lastAction
 
         if not self.lastaction or not self.laststate:
             return False
@@ -157,15 +161,41 @@ class RunFastAgent(Player):
         tagetValue = (1 - self.alpha) * qValue + self.alpha * (reward + self.gamma * maxQ)
 
         self.controller.train(input, tagetValue)
-        # 如果没有下一个value的话，就说明我们的这个episode结束了，我们就把训练好的神经网络存入文件中
-        # if not qNextValues:
-        #     if not os.path.isdir(self.name):
-        #         os.mkdir(self.name)
-        #     self.controller.saveNet(self.name + '/net' + str(self.turn))
 
     def saveNet(self):
         if not os.path.isdir(self.controller.name):
             os.mkdir(self.controller.name)
         self.controller.saveNet()
+
+class RunFastAgentWithMemory(RunFastAgent):
+    '''
+    这个agent存储了replay memory，用来做更新
+    这样就可以防止进入局部最优
+    '''
+
+    def __init__(self, name, controller):
+        RunFastAgent.__init__(self, name, controller)
+        self.memories = []
+
+    def saveMemory(self, memory, capacity=1000000):
+        '''
+        用于存储之前的行动状态，用于之后的更新
+        memory [laststate, lastaction, reward, nextState]
+        只存储一定的量，超过这个量，就把之前的记录给删除
+        '''
+        if len(self.memories) >= capacity:
+            self.memories.pop()
+        self.memories.append(memory)
+
+    def learnFromMemory(self, learn_num=1000):
+        '''
+        从memory中调出数据进行学习，随机的取出历史数据进行学习，防止陷入局部最优
+        '''
+        memories_len = len(self.memories)
+        if memories_len < learn_num:
+            learn_num = memories_len
+        for i in xrange(learn_num):
+            memory = random.choice(self.memories)
+            self.learn(memory[3], memory[2], lastState=memory[0], lastAction=memory[1])
 
 

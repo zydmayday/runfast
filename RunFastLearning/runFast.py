@@ -110,8 +110,7 @@ class RunFast():
             else:
                 r = 0
                 for p in self.players:
-                    if p not in self.players:
-                        r += len(p.getCurrentCards())
+                    r += len(p.getCurrentCards())
                 return r
 
     def getPlayers(self):
