@@ -184,7 +184,7 @@ class RunFastAgentWithMemory(RunFastAgent):
         只存储一定的量，超过这个量，就把之前的记录给删除
         '''
         if len(self.memories) >= capacity:
-            self.memories.pop()
+            self.memories.pop(0)
         self.memories.append(memory)
 
     def learnFromMemory(self, learn_num=1000):
