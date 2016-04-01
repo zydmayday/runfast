@@ -49,7 +49,7 @@ class Experiment():
 			agent.learn(state, reward)
 
 		for agent in agents:
-			if agent.controller.turn % 10 == 0:
+			if agent.controller.turn % 100 == 0:
 				agent.saveNet()
 
 		self.reset()
@@ -88,7 +88,7 @@ class Experiment():
 			agent.learnFromMemory()
 
 		for agent in agents:
-			if agent.controller.turn % 10000 == 0:
+			if agent.controller.turn % 100 == 0:
 				agent.saveNet()
 
 		self.reset()
