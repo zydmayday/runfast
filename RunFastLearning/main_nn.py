@@ -90,7 +90,7 @@ if __name__ == '__main__':
 	train = input('input 1 to train, input 0 to test:')
 	playerNamePrefix = 'player_nn'
 	if train:
-		trainQValueNetwork(playerNamePrefix=playerNamePrefix, loopNum=1)
+		trainQValueNetwork(playerNamePrefix=playerNamePrefix)
 	else:
 		testName = playerNamePrefix + '0'
 		for i in range(0,1000000,20000):

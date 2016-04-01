@@ -27,8 +27,6 @@ class Experiment():
 		env = self.env
 		env.doReadyWork(agents)
 
-		states = {1: None, 2: None, 0: None} # 记录三个agent的历史状态
-
 		while not env.isOver():
 			ct = env.currentTurn
 			ctagent = agents[ct]
@@ -51,7 +49,7 @@ class Experiment():
 			agent.learn(state, reward)
 
 		for agent in agents:
-			# if agent.controller.turn % 10000 == 0:
+			if agent.controller.turn % 10000 == 0:
 			agent.saveNet()
 
 		self.reset()
