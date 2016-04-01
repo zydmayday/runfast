@@ -20,12 +20,12 @@ def trainQValueNetwork(loopNum=1000000, startTurn=0, playerNamePrefix='player', 
 	if os.path.isfile(history_filename):
 		with open(history_filename, 'r') as f:
 			winners = pickle.load(f)
-			startTurn = sum([v for i,v in winners.items()]) + 1
+			startTurn = sum([v for i,v in winners.items()]) 
 
 	for i in range(0, 3):
 		playerName = playerNamePrefix + str(i)
 		nw = RunFastNetwork(playerName)
-		nw.loadNet(startTurn)
+		nw.loadNet(playerName, startTurn)
 		rfa = RunFastAgent(playerName, nw)
 		nws.append(nw)
 		agents.append(rfa)
@@ -90,7 +90,7 @@ if __name__ == '__main__':
 	train = input('input 1 to train, input 0 to test:')
 	playerNamePrefix = 'player_nn'
 	if train:
-		trainQValueNetwork(playerNamePrefix=playerNamePrefix)
+		trainQValueNetwork(playerNamePrefix=playerNamePrefix, loopNum=1)
 	else:
 		testName = playerNamePrefix + '0'
 		for i in range(0,1000000,20000):

@@ -177,7 +177,7 @@ class RunFastAgentWithMemory(RunFastAgent):
         RunFastAgent.__init__(self, name, controller)
         self.memories = []
 
-    def saveMemory(self, memory, capacity=1000000):
+    def saveMemory(self, memory, capacity=10000):
         '''
         用于存储之前的行动状态，用于之后的更新
         memory [laststate, lastaction, reward, nextState]
@@ -187,7 +187,7 @@ class RunFastAgentWithMemory(RunFastAgent):
             self.memories.pop(0)
         self.memories.append(memory)
 
-    def learnFromMemory(self, learn_num=1000):
+    def learnFromMemory(self, learn_num=10):
         '''
         从memory中调出数据进行学习，随机的取出历史数据进行学习，防止陷入局部最优
         '''

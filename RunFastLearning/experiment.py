@@ -51,8 +51,8 @@ class Experiment():
 			agent.learn(state, reward)
 
 		for agent in agents:
-			if agent.controller.turn % 10000 == 0:
-				agent.saveNet()
+			# if agent.controller.turn % 10000 == 0:
+			agent.saveNet()
 
 		self.reset()
 		# print winner, ' wins!'
@@ -90,7 +90,7 @@ class Experiment():
 			agent.learnFromMemory()
 
 		for agent in agents:
-			if agent.controller.turn % 20000 == 0:
+			if agent.controller.turn % 10000 == 0:
 				agent.saveNet()
 
 		self.reset()
@@ -111,12 +111,12 @@ class Experiment():
 			ctagent = agents[ct]
 			state = env.getState()
 			action = []
-			if ctagent.name == testName:
+			# if ctagent.name == testName:
 				# print ctagent.name, 'get best action'
-				action = ctagent.getBestAction(state)
-			else:
+			action = ctagent.getBestAction(state)
+			# else:
 				# print ctagent.name, 'get random action'
-				action = ctagent.getAction(state, epsilon=0.5)
+				# action = ctagent.getAction(state, epsilon=0.5)
 
 			env.doAction(action)
 
