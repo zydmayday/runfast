@@ -50,7 +50,7 @@ class Experiment():
 
 		for agent in agents:
 			if agent.controller.turn % 10000 == 0:
-			agent.saveNet()
+				agent.saveNet()
 
 		self.reset()
 		# print winner, ' wins!'
