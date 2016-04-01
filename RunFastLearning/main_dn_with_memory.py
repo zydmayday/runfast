@@ -85,9 +85,10 @@ def testQValueNetwork(startTurn=0, loopNum=1000, testName='player0', filename='w
 
 if __name__ == '__main__':
 	train = input('input 1 to train, input 0 to test:')
+	loopNum = input('input loopNum:')
 	playerNamePrefix = 'player_dn_with_memory'
 	if train:
-		trainDeepNetworkWithMemory(playerNamePrefix=playerNamePrefix)
+		trainDeepNetworkWithMemory(playerNamePrefix=playerNamePrefix, loopNum=loopNum)
 	else:
 		testName = playerNamePrefix + '0'
 		for i in range(0,1000000,20000):
