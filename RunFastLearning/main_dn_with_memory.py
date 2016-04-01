@@ -26,7 +26,7 @@ def trainDeepNetworkWithMemory(loopNum=1000000, startTurn=0, playerNamePrefix='p
 	for i in range(0, 3):
 		playerName = playerNamePrefix + str(i)
 		nw = RunFastDeepNetwork(playerName)
-		nw.loadNet(startTurn)
+		nw.loadNet(playerName, startTurn)
 		rfa = RunFastAgentWithMemory(playerName, nw)
 		nws.append(nw)
 		agents.append(rfa)
