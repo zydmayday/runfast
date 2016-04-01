@@ -27,13 +27,13 @@ class RunFastNetwork():
 	def saveNet(self, filename=''):
 		with open(self.name  + '/' + str(self.turn), 'w') as f:
 			print self.name  + '/' + str(self.turn), ' has saved'
-			pickle.dump(self.net, f)
+			pickle.dump(self, f)
 
 	def loadNet(self, playName, turn=0):
 		if os.path.isfile(playName  + '/' + str(turn)):
 			with open(self.name  + '/' + str(turn), 'r') as f:
 				print 'loading ', playName  + '/' + str(turn)
-				self.net = pickle.load(f)
+				self = pickle.load(f)
 
 	def getValue(self, input):
 		return self.net.activate(input)
