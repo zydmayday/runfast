@@ -92,8 +92,8 @@ if __name__ == '__main__':
 		trainDeepNetwork(playerNamePrefix=playerNamePrefix, loopNum = loopNum)
 	else:
 		testName = playerNamePrefix + '0'
-		for i in range(0,1000000,20000):
+		for i in range(0,1000000,5000):
 			while not os.path.isfile(testName + '/' + str(i)):
 				print 'waiting for training finish'
 				time.sleep(10)
-			testQValueNetwork(startTurn=i, loopNum=100000, filename='test_winners_dn', playerNamePrefix=playerNamePrefix, testName=testName)
+			testQValueNetwork(startTurn=i, loopNum=50000, filename='test_winners_dn', playerNamePrefix=playerNamePrefix, testName=testName)

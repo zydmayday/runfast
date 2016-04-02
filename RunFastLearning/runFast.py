@@ -101,17 +101,16 @@ class RunFast():
         return True
 
     def getReward(self, player):
-        if not self.gameOver():
-            return 0
-        else:
+        r = 0
+        if self.gameOver():
             cc = player.getCurrentCards()
             if cc:
-                return -len(cc)
+                r = -len(cc)
             else:
-                r = 0
                 for p in self.players:
                     r += len(p.getCurrentCards())
-                return r
+        # print player.name, 'get reward ', r
+        return r
 
     def getPlayers(self):
         return self.players

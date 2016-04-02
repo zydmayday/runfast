@@ -34,7 +34,7 @@ def trainQValueNetwork(loopNum=1000000, startTurn=0, playerNamePrefix='player', 
 	exp = Experiment(env, agents)
 
 	for i in range(startTurn, startTurn + loopNum):
-		exp.setTurn(i)
+		# exp.setTurn(i)
 		winner = exp.doEpisode()
 		if winners.has_key(winner):
 			winners[winner] += 1
@@ -49,6 +49,7 @@ def testQValueNetwork(startTurn=0, loopNum=1000, testName='player0', filename='t
 	'''
 	在测试时，其他的两个agent都不选用最佳的network，只有测试对象使用
 	然后测试对象每次选取最佳的行动，其他的两个agent有50%概率选择最佳行动，不过他们的net应该是最普通的，没有经过训练的
+	winNums = {trainNum: {player0: {'point': xxx, 'win': yyy}, player1: {...}}}
 	'''
 	agents = []
 	winNums = {}
@@ -61,7 +62,7 @@ def testQValueNetwork(startTurn=0, loopNum=1000, testName='player0', filename='t
 		playerName = playerNamePrefix + str(i)
 		nw = RunFastNetwork(playerName)
 		if playerName == testName:
-			nw.loadNet(playerName, startTurn)
+			nw.loadNet(testName, startTurn)
 		rfa = RunFastAgent(playerName, nw)
 		agents.append(rfa)
 		 
@@ -77,9 +78,10 @@ def testQValueNetwork(startTurn=0, loopNum=1000, testName='player0', filename='t
 		for j in range(0,3):
 			playerName = playerNamePrefix + str(j)
 			if not winNums[startTurn].get(playerName):
-				winNums[startTurn][playerName] = testHistory[playerName]
-			else:
-				winNums[startTurn][playerName] += testHistory[playerName]
+				winNums[startTurn][playerName] = {'point': 0, 'win': 0}
+			winNums[startTurn][playerName]['point'] += testHistory[playerName]
+			if testHistory['name'] == playerName:
+				winNums[startTurn][playerName]['win'] += 1
 		print str(i-startTurn), winNums
 
 	print winNums
@@ -94,8 +96,8 @@ if __name__ == '__main__':
 		trainQValueNetwork(playerNamePrefix=playerNamePrefix, loopNum=loopNum)
 	else:
 		testName = playerNamePrefix + '0'
-		for i in range(0,1000000,20000):
+		for i in range(80,1000000,5000):
 			while not os.path.isfile(testName + '/' + str(i)):
 				print 'waiting for training finish'
 				time.sleep(10)
-			testQValueNetwork(startTurn=i, loopNum=100000, filename='test_winners_nn', playerNamePrefix=playerNamePrefix, testName=testName)
+			testQValueNetwork(startTurn=i, loopNum=50000, filename='test_winners_nn', playerNamePrefix=playerNamePrefix, testName=testName)

@@ -10,6 +10,10 @@ class Experiment():
 		for a in self.agents:
 			a.setTurn(turn)
 
+	def addTurn(self):
+		for a in self.agents:
+			a.controller.turn += 1		
+
 	def reset(self):
 		self.env.resetEnv()
 		for a in self.agents:
@@ -30,6 +34,11 @@ class Experiment():
 		while not env.isOver():
 			ct = env.currentTurn
 			ctagent = agents[ct]
+
+			print ct
+			print env.players[ct].name
+			print agents[ct].name
+
 			state = env.getState()
 			reward = env.getReward(ctagent)
 			action = ctagent.getAction(state)
@@ -49,8 +58,10 @@ class Experiment():
 			agent.learn(state, reward)
 
 		for agent in agents:
-			if agent.controller.turn % 100 == 0:
+			if agent.controller.turn % 5000 == 0:
 				agent.saveNet()
+
+		self.addTurn()
 
 		self.reset()
 		# print winner, ' wins!'
@@ -88,8 +99,10 @@ class Experiment():
 			agent.learnFromMemory()
 
 		for agent in agents:
-			if agent.controller.turn % 100 == 0:
+			if agent.controller.turn % 5000 == 0:
 				agent.saveNet()
+
+		self.addTurn()
 
 		self.reset()
 		return winner
@@ -108,14 +121,7 @@ class Experiment():
 			ct = env.currentTurn
 			ctagent = agents[ct]
 			state = env.getState()
-			action = []
-			# if ctagent.name == testName:
-				# print ctagent.name, 'get best action'
 			action = ctagent.getBestAction(state)
-			# else:
-				# print ctagent.name, 'get random action'
-				# action = ctagent.getAction(state, epsilon=0.5)
-
 			env.doAction(action)
 
 		testHistory = {'player0': None, 'player1': None, 'player2': None, 'name': ''}
