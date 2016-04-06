@@ -38,7 +38,7 @@ def trainDeepNetwork(loopNum=10000, startTurn=0, history_filename='train_winners
 
 	for i in range(startTurn, startTurn + loopNum):
 
-		if i % 50 == 0:
+		if i % 200 == 0:
 			for agent in agents:
 				agent.saveNet()
 
@@ -105,7 +105,7 @@ if __name__ == '__main__':
 		trainDeepNetwork()
 	else:
 		testName = PLAYER_LIST[0]
-		for i in range(0,10000,50):
+		for i in range(0,10000,200):
 			while not os.path.isfile(testName + '/' + str(i)):
 				print 'waiting for training finish'
 				time.sleep(10)
