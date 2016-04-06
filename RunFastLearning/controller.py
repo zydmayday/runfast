@@ -33,7 +33,11 @@ class RunFastNetwork():
 		if os.path.isfile(playName  + '/' + str(turn)):
 			with open(self.name  + '/' + str(turn), 'r') as f:
 				print 'loading ', playName  + '/' + str(turn)
-				self = pickle.load(f)
+				obj = pickle.load(f)
+				print obj.turn
+				self.turn = obj.turn
+				self.net = obj.net
+				self.name = obj.name
 
 	def getValue(self, input):
 		return self.net.activate(input)
@@ -105,8 +109,8 @@ class StateNetwork():
 				output[i] = 0
 		return output
 
-	def getInput(self, state, action):
-		return RunFastAgent.getInput(state, action)
+	def getInput(self, state, action, type=1):
+		return RunFastAgent.getInput(state, action, type=type)
 
 	def getOutput(self, state):
 		input = RunFastAgent.getInput(state, [])

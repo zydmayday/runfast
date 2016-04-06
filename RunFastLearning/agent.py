@@ -50,7 +50,7 @@ class RunFastAgent(Player):
         self.laststate = None 
         self.lastaction = None
 
-    def getAction(self, state, epsilon=0.1):
+    def getAction(self, state, epsilon=0.1, type=1):
         '''
         根据当前的牌面状态选择一个action, 这里根据epsilon-greedy来进行选择
         return dict{cards，type}
@@ -67,7 +67,7 @@ class RunFastAgent(Player):
             else:
                 return self.playRandom()
         else:
-            return self.getBestAction(state)
+            return self.getBestAction(state, type=type)
 
     def getActions(self, state):
         '''
@@ -79,7 +79,7 @@ class RunFastAgent(Player):
         cardsCanPlay = self.getCardsCanPlay(preType, preCards, isFirst)
         return cardsCanPlay
 
-    def getBestAction(self, state):
+    def getBestAction(self, state, type=1):
         '''
         这里有几种方法来实现，先说最简单的。
         直接对当前的状态s取各个可能的action的Q值，max的那个a就可以作为best
@@ -93,46 +93,67 @@ class RunFastAgent(Player):
         for naType in actionDict.keys():
             # print naType
             for a in actionDict[naType]:
-                # print a
-                inp = self.getInput(state, a)
+                action = [self.cards[i] for i in a]
+                inp = self.getInput(state, action, type=type)
                 value = self.controller.getValue(inp)
                 if not bestValue:
                     bestValue = value
                     bestType = naType
-                    bestAction = a
+                    bestAction = action
                 if  value > bestValue:
                     bestValue = value
                     bestType = naType
-                    bestAction = a
-
-        playCards = [self.cards[i] for i in bestAction]
-        return {'cards': playCards, 'type': bestType}
+                    bestAction = action
+        return {'cards': bestAction, 'type': bestType}
 
     @ classmethod
-    def getInput(self, state, action):
+    def getInput(self, state, action, type=1):
         '''
         获得当前的状态，供网络学习
         playerCards 当前的手牌
         playedCards 已经打出的牌
         preCards 上家打出的牌
         actions 这一轮的走牌
+        在获取input时，我们可以创建多种features，不同的features的效果自然不同，这里将所有的input写在一起，便于管理
         '''
-        input = [0 for i in range(0, 192)]
         playerCards = state['playerCards']
         playedCards = state['playedCards']
         preCards = state['preCards']
-        for i, c in enumerate(NNINPUT):
-            if i < 48 and c in playerCards:
-                input[i] = 1
-            elif 48 <= i < 96 and c in playedCards:
-               input[i] = 1
-            elif 96 <= i < 144 and c in preCards:
-                input[i] = 1   
-            elif 144 <= i < 192  and c in action:
-                input[i] = 1
-        return input
+        if type == 1:
+            input = [0] * 192
+            for i, c in enumerate(NNINPUT):
+                if i < 48 and c in playerCards:
+                    input[i] = 1
+                elif 48 <= i < 96 and c in playedCards:
+                   input[i] = 1
+                elif 96 <= i < 144 and c in preCards:
+                    input[i] = 1   
+                elif 144 <= i < 192  and c in action:
+                    input[i] = 1
+            return input
+        elif type == 2:
+            input = [0] * 52
+            print state, action
+            offset = -3
+            for card in playerCards:
+                c_n = int(card[0:-1])
+                input[c_n+offset] += 1
+            offset += 13
+            for card in playedCards:
+                c_n = int(card[0:-1])
+                input[c_n+offset] += 1
+            offset += 13
+            for card in preCards:
+                c_n = int(card[0:-1])
+                input[c_n+offset] += 1
+            offset += 13
+            for card in action:
+                c_n = int(card[0:-1])
+                input[c_n+offset] += 1
+            print input
+            return input
 
-    def learn(self, nextState, reward, lastState = None, lastAction = None):
+    def learn(self, nextState, reward, lastState = None, lastAction = None, type=1):
         '''
         算出target Qvalue，传给控制器进行学习
         qvalue_n+1 = (1-alpha) * qvalue + alpha*(r + gamma * max(qvalue_next))
@@ -146,14 +167,15 @@ class RunFastAgent(Player):
         if not self.lastaction or not self.laststate:
             return False
         # print self.laststate
-        input = self.getInput(self.laststate, self.lastaction)
+        input = self.getInput(self.laststate, self.lastaction, type=type)
         qValue = self.controller.getValue(input)
 
         qNextValues = []
         nextActionsDict = self.getActions(nextState)
         for naType in nextActionsDict.keys():
             for a in nextActionsDict[naType]:
-                inp = self.getInput(nextState, a)
+                action = [self.cards[i] for i in a]
+                inp = self.getInput(nextState, action, type=type)
                 qNextValues.append(self.controller.getValue(inp))
         maxQ = 0
         if qNextValues:

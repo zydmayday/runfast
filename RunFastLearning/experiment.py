@@ -2,9 +2,10 @@
 
 class Experiment():
 
-	def __init__(self, env, agents):
+	def __init__(self, env, agents, type=1):
 		self.env = env
 		self.agents = agents
+		self.type = type
 
 	def setTurn(self, turn):
 		for a in self.agents:
@@ -30,20 +31,16 @@ class Experiment():
 		agents = self.agents
 		env = self.env
 		env.doReadyWork(agents)
-
+		type = self.type
 		while not env.isOver():
 			ct = env.currentTurn
 			ctagent = agents[ct]
 
-			print ct
-			print env.players[ct].name
-			print agents[ct].name
-
 			state = env.getState()
 			reward = env.getReward(ctagent)
-			action = ctagent.getAction(state)
+			action = ctagent.getAction(state, type=type)
 			env.doAction(action)
-			ctagent.learn(state, reward)
+			ctagent.learn(state, reward, type=type)
 			ctagent.lastaction = action['cards']
 			ctagent.laststate = state
 
@@ -55,11 +52,11 @@ class Experiment():
 				winner = agent.name
 			reward = env.getReward(agent)
 			# print agent.name, reward
-			agent.learn(state, reward)
+			agent.learn(state, reward, type=type)
 
-		for agent in agents:
-			if agent.controller.turn % 5000 == 0:
-				agent.saveNet()
+		# for agent in agents:
+		# 	if agent.controller.turn % 5000 == 0:
+		# 		agent.saveNet()
 
 		self.addTurn()
 
@@ -98,9 +95,9 @@ class Experiment():
 			agent.saveMemory(memory)
 			agent.learnFromMemory()
 
-		for agent in agents:
-			if agent.controller.turn % 5000 == 0:
-				agent.saveNet()
+		# for agent in agents:
+		# 	if agent.controller.turn % 5000 == 0:
+		# 		agent.saveNet()
 
 		self.addTurn()
 

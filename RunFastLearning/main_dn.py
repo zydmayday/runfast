@@ -8,8 +8,9 @@ import os
 from collections import defaultdict
 import time
 
+PLAYER_LIST = ['dn_train1', 'dn_train2', 'dn_train3']
 
-def trainDeepNetwork(loopNum=1000000, startTurn=0, playerNamePrefix='player', history_filename='train_winners_dn'):
+def trainDeepNetwork(loopNum=10000, startTurn=0, history_filename='train_winners_dn', type=1, inputNum=192):
 	'''
 	用深度网络来训练Q值
 	'''
@@ -25,29 +26,42 @@ def trainDeepNetwork(loopNum=1000000, startTurn=0, playerNamePrefix='player', hi
 
 	# load agents with network
 	for i in range(0, 3):
-		playerName = playerNamePrefix + str(i)
-		nw = RunFastDeepNetwork(playerName)
+		playerName = PLAYER_LIST[i]
+		nw = RunFastDeepNetwork(playerName, inputNum=inputNum, hidden1Num=inputNum, hidden2Num=inputNum, hidden3Num=inputNum, outNum=1)
 		nw.loadNet(playerName, startTurn)
 		rfa = RunFastAgent(playerName, nw)
 		nws.append(nw)
 		agents.append(rfa)
 		 
 	env = RunFastEnvironment()
-	exp = Experiment(env, agents)
+	exp = Experiment(env, agents, type=type)
 
 	for i in range(startTurn, startTurn + loopNum):
-		exp.setTurn(i)
+
+		if i % 50 == 0:
+			for agent in agents:
+				agent.saveNet()
+
+			with open(history_filename, 'w') as f:
+				pickle.dump(winners, f)
+
+		# exp.setTurn(i)
 		winner = exp.doEpisode()
 		if winners.has_key(winner):
 			winners[winner] += 1
 		else:
 			winners[winner] = 1
 
+	for agent in agents:
+		agent.saveNet()
+	with open(history_filename, 'w') as f:
+		pickle.dump(winners, f)
+
 	print winners
 	with open(history_filename, 'w') as f:
 		pickle.dump(winners, f)
 
-def testQValueNetwork(startTurn=0, loopNum=1000, testName='player0', filename='win_nums', playerNamePrefix='player'):
+def testQValueNetwork(startTurn=0, loopNum=1000, testName='player0', filename='win_nums', type=1, inputNum=192):
 	agents = []
 	winNums = {}
 	if os.path.isfile(filename):
@@ -56,15 +70,15 @@ def testQValueNetwork(startTurn=0, loopNum=1000, testName='player0', filename='w
 
 	print 'loading agents'
 	for i in range(0, 3):
-		playerName = playerNamePrefix + str(i)
-		nw = RunFastDeepNetwork(playerName)
+		playerName = PLAYER_LIST[i]
+		nw = RunFastDeepNetwork(playerName, inputNum=inputNum, hidden1Num=inputNum, hidden2Num=inputNum, hidden3Num=inputNum, outNum=1)
 		if playerName == testName:
 			nw.loadNet(playerName, startTurn)
 		rfa = RunFastAgent(playerName, nw)
 		agents.append(rfa)
 		 
 	env = RunFastEnvironment()
-	exp = Experiment(env, agents)
+	exp = Experiment(env, agents, type=type)
 
 	print 'set up the experiment'
 
@@ -73,11 +87,12 @@ def testQValueNetwork(startTurn=0, loopNum=1000, testName='player0', filename='w
 			winNums[startTurn] = {}
 		testHistory = exp.doTest(testName)
 		for j in range(0,3):
-			playerName = playerNamePrefix + str(j)
+			playerName = PLAYER_LIST[j]
 			if not winNums[startTurn].get(playerName):
-				winNums[startTurn][playerName] = testHistory[playerName]
-			else:
-				winNums[startTurn][playerName] += testHistory[playerName]
+				winNums[startTurn][playerName] = {'point': 0, 'win': 0}
+			winNums[startTurn][playerName]['point'] += testHistory[playerName]
+			if testHistory['name'] == playerName:
+				winNums[startTurn][playerName]['win'] += 1
 		print str(i-startTurn), winNums
 
 	print winNums
@@ -86,14 +101,12 @@ def testQValueNetwork(startTurn=0, loopNum=1000, testName='player0', filename='w
 
 if __name__ == '__main__':
 	train = input('input 1 to train, input 0 to test:')
-	loopNum = input('input loopNum:')
-	playerNamePrefix = 'player_dn'
 	if train:
-		trainDeepNetwork(playerNamePrefix=playerNamePrefix, loopNum = loopNum)
+		trainDeepNetwork()
 	else:
-		testName = playerNamePrefix + '0'
-		for i in range(0,1000000,5000):
+		testName = PLAYER_LIST[0]
+		for i in range(0,10000,50):
 			while not os.path.isfile(testName + '/' + str(i)):
 				print 'waiting for training finish'
 				time.sleep(10)
-			testQValueNetwork(startTurn=i, loopNum=50000, filename='test_winners_dn', playerNamePrefix=playerNamePrefix, testName=testName)
+			testQValueNetwork(startTurn=i, loopNum=1000, filename='test_winners_dn', testName=testName)

@@ -8,7 +8,9 @@ import os
 from collections import defaultdict
 import time
 
-def trainQValueNetwork(loopNum=1000000, startTurn=0, playerNamePrefix='player', history_filename='train_winners_nn'):
+PLAYER_LIST = ['nn_train1', 'nn_train2', 'nn_train3']
+
+def trainQValueNetwork(loopNum=10000, startTurn=0, history_filename='train_winners_nn', inputNum=192, type=1):
 	'''
 	通过让三个agent互相玩游戏，然后来训练出一个Q值网络
 	三个agent的网络保存在playeri里面，数字分别代表的是训练了多少次后得出的网络
@@ -23,17 +25,24 @@ def trainQValueNetwork(loopNum=1000000, startTurn=0, playerNamePrefix='player', 
 			startTurn = sum([v for i,v in winners.items()]) 
 
 	for i in range(0, 3):
-		playerName = playerNamePrefix + str(i)
-		nw = RunFastNetwork(playerName)
+		playerName = PLAYER_LIST[i]
+		nw = RunFastNetwork(playerName, inputNum=inputNum, hiddenNum=inputNum, outNum=1)
 		nw.loadNet(playerName, startTurn)
 		rfa = RunFastAgent(playerName, nw)
 		nws.append(nw)
 		agents.append(rfa)
 		 
 	env = RunFastEnvironment()
-	exp = Experiment(env, agents)
+	exp = Experiment(env, agents, type=type)
 
-	for i in range(startTurn, startTurn + loopNum):
+	for i in xrange(startTurn, startTurn + loopNum):
+
+		if i % 50 == 0:
+			for agent in agents:
+				agent.saveNet()
+
+			with open(history_filename, 'w') as f:
+				pickle.dump(winners, f)
 		# exp.setTurn(i)
 		winner = exp.doEpisode()
 		if winners.has_key(winner):
@@ -41,11 +50,18 @@ def trainQValueNetwork(loopNum=1000000, startTurn=0, playerNamePrefix='player', 
 		else:
 			winners[winner] = 1
 
+	for agent in agents:
+		agent.saveNet()
+
+	with open(history_filename, 'w') as f:
+		pickle.dump(winners, f)
+
+
 	print winners
 	with open(history_filename, 'w') as f:
 		pickle.dump(winners, f)
 
-def testQValueNetwork(startTurn=0, loopNum=1000, testName='player0', filename='test_winners_nn', playerNamePrefix='player'):
+def testQValueNetwork(startTurn=0, loopNum=1000, testName='player0', filename='test_winners_nn', playerNamePrefix='player', type=1, inputNum=192):
 	'''
 	在测试时，其他的两个agent都不选用最佳的network，只有测试对象使用
 	然后测试对象每次选取最佳的行动，其他的两个agent有50%概率选择最佳行动，不过他们的net应该是最普通的，没有经过训练的
@@ -59,15 +75,15 @@ def testQValueNetwork(startTurn=0, loopNum=1000, testName='player0', filename='t
 
 	print 'loading agents'
 	for i in range(0, 3):
-		playerName = playerNamePrefix + str(i)
-		nw = RunFastNetwork(playerName)
+		playerName = PLAYER_LIST[i]
+		nw = RunFastNetwork(playerName, inputNum=inputNum, hiddenNum=inputNum, outNum=1)
 		if playerName == testName:
 			nw.loadNet(testName, startTurn)
 		rfa = RunFastAgent(playerName, nw)
 		agents.append(rfa)
 		 
 	env = RunFastEnvironment()
-	exp = Experiment(env, agents)
+	exp = Experiment(env, agents, type=type)
 
 	print 'set up the experiment'
 
@@ -76,7 +92,7 @@ def testQValueNetwork(startTurn=0, loopNum=1000, testName='player0', filename='t
 			winNums[startTurn] = {}
 		testHistory = exp.doTest(testName)
 		for j in range(0,3):
-			playerName = playerNamePrefix + str(j)
+			playerName = PLAYER_LIST[j]
 			if not winNums[startTurn].get(playerName):
 				winNums[startTurn][playerName] = {'point': 0, 'win': 0}
 			winNums[startTurn][playerName]['point'] += testHistory[playerName]
@@ -88,16 +104,30 @@ def testQValueNetwork(startTurn=0, loopNum=1000, testName='player0', filename='t
 	with open(filename, 'w') as f:
 		pickle.dump(winNums, f)
 
-if __name__ == '__main__':
+def main1():
 	train = input('input 1 to train, input 0 to test:')
-	loopNum = input('input loopNum:')
-	playerNamePrefix = 'player_nn'
 	if train:
-		trainQValueNetwork(playerNamePrefix=playerNamePrefix, loopNum=loopNum)
+		trainQValueNetwork()
 	else:
-		testName = playerNamePrefix + '0'
+		testName = PLAYER_LIST[0]
+		for i in range(0,10000,50):
+			while not os.path.isfile(testName + '/' + str(i)):
+				print 'not found ', testName + '/' + str(i) ,'waiting for training finish'
+				time.sleep(10)
+			testQValueNetwork(startTurn=i, loopNum=1000, filename='test_winners_nn', testName=testName)
+
+def main2():
+	train = input('input 1 to train, input 0 to test:')
+	if train:
+		trainQValueNetwork(inputNum=52, loopNum=1, type=2)
+	else:
+		testName = PLAYER_LIST[0]
 		for i in range(0,1000000,5000):
 			while not os.path.isfile(testName + '/' + str(i)):
-				print 'waiting for training finish'
+				print 'not found ', testName + '/' + str(i) ,'waiting for training finish'
 				time.sleep(10)
-			testQValueNetwork(startTurn=i, loopNum=50000, filename='test_winners_nn', playerNamePrefix=playerNamePrefix, testName=testName)
+			testQValueNetwork(startTurn=i, loopNum=50000, filename='test_winners_nn', testName=testName)
+
+if __name__ == '__main__':
+	main1()
+	# main2()
