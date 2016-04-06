@@ -107,4 +107,4 @@ if __name__ == '__main__':
 			while not os.path.isfile(testName + '/' + str(i)):
 				print 'waiting for training finish'
 				time.sleep(10)
-			testQValueNetwork(startTurn=i, loopNum=1000, filename='test_winners_dn_with_momery', testName=testName)
+			testQValueNetwork(startTurn=i, loopNum=1000, filename='test_winners_dn_with_memory', testName=testName)

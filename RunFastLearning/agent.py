@@ -150,7 +150,6 @@ class RunFastAgent(Player):
             for card in action:
                 c_n = int(card[0:-1])
                 input[c_n+offset] += 1
-            print input
             return input
 
     def learn(self, nextState, reward, lastState = None, lastAction = None, type=1):
@@ -164,7 +163,7 @@ class RunFastAgent(Player):
             self.laststate = lastState
             self.lastaction = lastAction
 
-        if not self.lastaction or not self.laststate:
+        if self.lastaction == None and self.laststate == None:
             return False
         # print self.laststate
         input = self.getInput(self.laststate, self.lastaction, type=type)
@@ -180,9 +179,9 @@ class RunFastAgent(Player):
         maxQ = 0
         if qNextValues:
             maxQ = max(qNextValues)
-        tagetValue = (1 - self.alpha) * qValue + self.alpha * (reward + self.gamma * maxQ)
-
-        self.controller.train(input, tagetValue)
+        targetValue = (1 - self.alpha) * qValue + self.alpha * (reward + self.gamma * maxQ)
+        print self.name, '(1 - ',self.alpha,') * ',qValue,' + ',self.alpha,' * (',reward,' + ',self.gamma,' * ',maxQ
+        self.controller.train(input, targetValue)
 
     def saveNet(self):
         if not os.path.isdir(self.controller.name):
@@ -199,7 +198,7 @@ class RunFastAgentWithMemory(RunFastAgent):
         RunFastAgent.__init__(self, name, controller)
         self.memories = []
 
-    def saveMemory(self, memory, capacity=10000):
+    def saveMemory(self, reward, state, action=None, capacity=10000):
         '''
         用于存储之前的行动状态，用于之后的更新
         memory [laststate, lastaction, reward, nextState]
@@ -207,9 +206,17 @@ class RunFastAgentWithMemory(RunFastAgent):
         '''
         if len(self.memories) >= capacity:
             self.memories.pop(0)
-        self.memories.append(memory)
+        if not self.lastaction:
+            self.lastaction = action
+            self.laststate = state
+        else:
+            memory = [self.laststate, self.lastaction, reward, state]
+            self.memories.append(memory)
+            self.lastaction = action
+            self.laststate = state
 
-    def learnFromMemory(self, learn_num=10):
+
+    def learnFromMemory(self, learn_num=10, type=1):
         '''
         从memory中调出数据进行学习，随机的取出历史数据进行学习，防止陷入局部最优
         '''
@@ -218,6 +225,6 @@ class RunFastAgentWithMemory(RunFastAgent):
             learn_num = memories_len
         for i in xrange(learn_num):
             memory = random.choice(self.memories)
-            self.learn(memory[3], memory[2], lastState=memory[0], lastAction=memory[1])
+            self.learn(memory[3], memory[2], lastState=memory[0], lastAction=memory[1], type=type)
 
 

@@ -101,6 +101,14 @@ class RunFast():
         return True
 
     def getReward(self, player):
+        '''
+        获得回报的机制
+        如果牌压住了对方，则得一分
+        '''
+        # if self.whoPlayed != -1 and self.players[self.whoPlayed] == player:
+        #     # print 'your turn again'
+        #     r = 0.5
+        # else:
         r = 0
         if self.gameOver():
             cc = player.getCurrentCards()
