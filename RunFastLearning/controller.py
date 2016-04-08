@@ -30,9 +30,11 @@ class RunFastNetwork():
 			pickle.dump(self, f)
 
 	def loadNet(self, playName, turn=0):
+		print os.path.isfile(playName  + '/' + str(turn)), playName  + '/' + str(turn)
 		if os.path.isfile(playName  + '/' + str(turn)):
 			with open(self.name  + '/' + str(turn), 'r') as f:
 				print 'loading ', playName  + '/' + str(turn)
+				time.sleep(0.5)
 				obj = pickle.load(f)
 				print obj.turn
 				self.turn = obj.turn

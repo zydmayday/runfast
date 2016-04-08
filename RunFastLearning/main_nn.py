@@ -110,11 +110,17 @@ def main1():
 		trainQValueNetwork()
 	else:
 		testName = PLAYER_LIST[0]
-		for i in range(0,10000,200):
+		testFileName = 'test_winners_nn'
+		winNums = {}
+		if os.path.isfile(testFileName):
+			with open(testFileName, 'r') as f:
+				winNums = pickle.load(f)
+		startTurn = max(winNums.keys())
+		for i in range(startTurn + 200, startTurn + 10000, 200):
 			while not os.path.isfile(testName + '/' + str(i)):
 				print 'not found ', testName + '/' + str(i) ,'waiting for training finish'
 				time.sleep(10)
-			testQValueNetwork(startTurn=i, loopNum=1000, filename='test_winners_nn', testName=testName)
+			testQValueNetwork(startTurn=i, loopNum=1000, filename=testFileName, testName=testName)
 
 def main2():
 	train = input('input 1 to train, input 0 to test:')

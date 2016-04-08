@@ -22,8 +22,8 @@ def trainDeepNetworkWithMemory(loopNum=10000, startTurn=0, history_filename='tra
 	if os.path.isfile(history_filename):
 		with open(history_filename, 'r') as f:
 			winners = pickle.load(f)
-			startTurn = sum([v for i,v in winners.items()]) + 1
-
+			startTurn = sum([v for i,v in winners.items()])
+	print startTurn
 	# load agents with network
 	for i in range(0, 3):
 		playerName = PLAYER_LIST[i]
@@ -74,7 +74,6 @@ def testQValueNetwork(startTurn=0, loopNum=1000, testName='player0', filename='w
 			nw.loadNet(playerName, startTurn)
 		rfa = RunFastAgentWithMemory(playerName, nw)
 		agents.append(rfa)
-		 
 	env = RunFastEnvironment()
 	exp = Experiment(env, agents, type=type)
 
@@ -103,8 +102,14 @@ if __name__ == '__main__':
 		trainDeepNetworkWithMemory()
 	else:
 		testName = PLAYER_LIST[0]
-		for i in range(0,10000,200):
+		testFileName = 'test_winners_dn_with_memory'
+		winNums = {}
+		if os.path.isfile(testFileName):
+			with open(testFileName, 'r') as f:
+				winNums = pickle.load(f)
+		startTurn = max(winNums.keys())
+		for i in range(startTurn + 200, startTurn + 10000, 200):
 			while not os.path.isfile(testName + '/' + str(i)):
 				print 'waiting for training finish'
 				time.sleep(10)
-			testQValueNetwork(startTurn=i, loopNum=1000, filename='test_winners_dn_with_memory', testName=testName)
+			testQValueNetwork(startTurn=i, loopNum=1000, filename=testFileName, testName=testName)
