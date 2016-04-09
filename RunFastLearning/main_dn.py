@@ -14,7 +14,6 @@ def trainDeepNetwork(loopNum=10000, startTurn=0, history_filename='train_winners
 	'''
 	用深度网络来训练Q值
 	'''
-	nws = []
 	agents = []
 	winners = {}
 
@@ -30,7 +29,6 @@ def trainDeepNetwork(loopNum=10000, startTurn=0, history_filename='train_winners
 		nw = RunFastDeepNetwork(playerName, inputNum=inputNum, hidden1Num=inputNum, hidden2Num=inputNum, hidden3Num=inputNum, outNum=1)
 		nw.loadNet(playerName, startTurn)
 		rfa = RunFastAgent(playerName, nw)
-		nws.append(nw)
 		agents.append(rfa)
 		 
 	env = RunFastEnvironment()
@@ -106,7 +104,7 @@ if __name__ == '__main__':
 	else:
 		testName = PLAYER_LIST[0]
 		testFileName = 'test_winners_dn'
-		winNums = {}
+		winNums = {0:{}}
 		if os.path.isfile(testFileName):
 			with open(testFileName, 'r') as f:
 				winNums = pickle.load(f)
@@ -117,4 +115,4 @@ if __name__ == '__main__':
 			while not os.path.isfile(testName + '/' + str(i)):
 				print 'waiting for training finish'
 				time.sleep(10)
-			testQValueNetwork(startTurn=i, loopNum=1000, filename=testFileName, testName=testName)
+			testQValueNetwork(startTurn=i, loopNum=10000, filename=testFileName, testName=testName)

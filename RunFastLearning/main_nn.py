@@ -16,7 +16,6 @@ def trainQValueNetwork(loopNum=10000, startTurn=0, history_filename='train_winne
 	三个agent的网络保存在playeri里面，数字分别代表的是训练了多少次后得出的网络
 	胜负情况记录在train_winners里面
 	'''
-	nws = []
 	agents = []
 	winners = {}
 	if os.path.isfile(history_filename):
@@ -29,7 +28,6 @@ def trainQValueNetwork(loopNum=10000, startTurn=0, history_filename='train_winne
 		nw = RunFastNetwork(playerName, inputNum=inputNum, hiddenNum=inputNum, outNum=1)
 		nw.loadNet(playerName, startTurn)
 		rfa = RunFastAgent(playerName, nw)
-		nws.append(nw)
 		agents.append(rfa)
 		 
 	env = RunFastEnvironment()
@@ -111,7 +109,7 @@ def main1():
 	else:
 		testName = PLAYER_LIST[0]
 		testFileName = 'test_winners_nn'
-		winNums = {}
+		winNums = {0:{}}
 		if os.path.isfile(testFileName):
 			with open(testFileName, 'r') as f:
 				winNums = pickle.load(f)
@@ -120,7 +118,7 @@ def main1():
 			while not os.path.isfile(testName + '/' + str(i)):
 				print 'not found ', testName + '/' + str(i) ,'waiting for training finish'
 				time.sleep(10)
-			testQValueNetwork(startTurn=i, loopNum=1000, filename=testFileName, testName=testName)
+			testQValueNetwork(startTurn=i, loopNum=10000, filename=testFileName, testName=testName)
 
 def main2():
 	train = input('input 1 to train, input 0 to test:')

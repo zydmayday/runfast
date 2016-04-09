@@ -8,13 +8,13 @@ import os
 from collections import defaultdict
 import time
 
-PLAYER_LIST = ['dn_memory_train1', 'dn_memory_train2', 'dn_memory_train3']
+# PLAYER_LIST = ['dn_memory_train1', 'dn_memory_train2', 'dn_memory_train3']
+PLAYER_LIST = ['dn_memory_train1_1000', 'dn_memory_train2_1000', 'dn_memory_train3_1000']
 
-def trainDeepNetworkWithMemory(loopNum=10000, startTurn=0, history_filename='train_winners_dn_with_momery', inputNum=192, type=1):
+def trainDeepNetworkWithMemory(loopNum=30000, startTurn=0, history_filename='train_winners_dn_with_memory_1000', inputNum=192, type=1):
 	'''
 	使用带记忆的方式来训练深度神经网络
 	'''
-	nws = []
 	agents = []
 	winners = {}
 
@@ -30,7 +30,6 @@ def trainDeepNetworkWithMemory(loopNum=10000, startTurn=0, history_filename='tra
 		nw = RunFastDeepNetwork(playerName, inputNum=inputNum, hidden1Num=inputNum, hidden2Num=inputNum, hidden3Num=inputNum, outNum=1)
 		nw.loadNet(playerName, startTurn)
 		rfa = RunFastAgentWithMemory(playerName, nw)
-		nws.append(nw)
 		agents.append(rfa)
 		 
 	env = RunFastEnvironment()
@@ -44,7 +43,7 @@ def trainDeepNetworkWithMemory(loopNum=10000, startTurn=0, history_filename='tra
 			with open(history_filename, 'w') as f:
 				pickle.dump(winners, f)
 
-		winner = exp.doEpisodeWithMemory()
+		winner = exp.doEpisodeWithMemory(capacity=1000)
 		if winners.has_key(winner):
 			winners[winner] += 1
 		else:
@@ -102,14 +101,15 @@ if __name__ == '__main__':
 		trainDeepNetworkWithMemory()
 	else:
 		testName = PLAYER_LIST[0]
-		testFileName = 'test_winners_dn_with_memory'
-		winNums = {}
+		testFileName = 'test_winners_dn_with_memory_1000'
+		# testFileName = 'test_winners_dn_with_memory'
+		winNums = {0:{}}
 		if os.path.isfile(testFileName):
 			with open(testFileName, 'r') as f:
 				winNums = pickle.load(f)
 		startTurn = max(winNums.keys())
-		for i in range(startTurn + 200, startTurn + 10000, 200):
+		for i in range(startTurn, startTurn + 30000, 200):
 			while not os.path.isfile(testName + '/' + str(i)):
 				print 'waiting for training finish'
 				time.sleep(10)
-			testQValueNetwork(startTurn=i, loopNum=1000, filename=testFileName, testName=testName)
+			testQValueNetwork(startTurn=i, loopNum=10000, filename=testFileName, testName=testName)

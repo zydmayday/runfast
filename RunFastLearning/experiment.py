@@ -65,7 +65,7 @@ class Experiment():
 		print winner, ' wins!'
 		return winner
 
-	def doEpisodeWithMemory(self):
+	def doEpisodeWithMemory(self, capacity=10000):
 		'''
 		存储历史纪录，不使用及时的更新，而是从历史纪录中调取纪录进行更新
 		'''
@@ -83,7 +83,7 @@ class Experiment():
 			action = ctagent.getAction(state, type=type)
 			env.doAction(action)
 			# memory = [ctagent.laststate, ctagent.lastaction, reward, state]
-			ctagent.saveMemory(reward, state, action)
+			ctagent.saveMemory(reward, state, action, capacity=capacity)
 			ctagent.learnFromMemory(type=type)
 
 		for agent in agents:
@@ -94,7 +94,7 @@ class Experiment():
 				winner = agent.name
 			reward = env.getReward(agent)
 			# memory = [agent.laststate, agent.lastaction, reward, state]
-			agent.saveMemory(reward, state)
+			agent.saveMemory(reward, state, capacity=capacity)
 			agent.learnFromMemory(type=type)
 
 		# for agent in agents:
