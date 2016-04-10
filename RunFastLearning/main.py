@@ -1,146 +1,115 @@
 # coding:utf-8
-from experiment import Experiment
+from experiment import Experiment, ExperimentWithMemory
 from environment import RunFastEnvironment
-from agent import RunFastAgent
-from controller import RunFastNetwork, RunFastDeepNetwork, StateNetwork
+from agent import RunFastAgent, RunFastAgentWithMemory
+from controller import RunFastNetwork, RunFastDeepNetwork
 import pickle
 import os
 from collections import defaultdict
+import time
 
-class Main:
-	def trainQValueNetwork(loopNum=1000000, startTurn=0):
-		'''
-		通过让三个agent互相玩游戏，然后来训练出一个Q值网络
-		三个agent的网络保存在playeri里面，数字分别代表的是训练了多少次后得出的网络
-		胜负情况记录在train_winners里面
-		'''
-		nws = []
-		agents = []
-		winners = {}
-		if os.path.isfile('train_winners'):
-			with open('train_winners', 'r') as f:
-				winners = pickle.load(f)
-				startTurn = sum([v for i,v in winners.items()]) + 1
+'''
+define some static values
+because we have to compare some differences between algorithms
+since then, we do not need to create a lot of files that we can do things in only one py,
+by passing the input to the main function
+'''
+PLAYER_LIST = {'dn': ['dn_train1', 'dn_train2', 'dn_train3'], 'nn': ['nn_train1', 'nn_train2', 'nn_train3'], 'nn_wm': ['nn_wm_train1', 'nn_wm_train2', 'nn_wm_train3'], 'dn_wm': ['dn_wm_train1', 'dn_wm_train2', 'dn_wm_train3']}
+NETWORK = {'dn': RunFastDeepNetwork, 'dn_wm': RunFastDeepNetwork, 'nn': RunFastNetwork, 'nn_wm': RunFastNetwork}
+AGENT = {'dn': RunFastAgent, 'dn_wm': RunFastAgentWithMemory, 'nn': RunFastAgent, 'nn_wm': RunFastAgentWithMemory}
+EXPERIMENT = {'dn': Experiment, 'dn_wm': ExperimentWithMemory, 'nn': Experiment, 'nn_wm': ExperimentWithMemory}
+TRAIN = {'dn': 'train_dn.dict', 'dn_wm': 'train_dn_wm.dict', 'nn': 'train_nn.dict', 'nn_wm': 'train_nn_wm.dict'}
+TEST = {'dn': 'test_dn.dict', 'dn_wm': 'test_dn_wm.dict', 'nn': 'test_nn.dict', 'nn_wm': 'test_nn_wm.dict'}
 
-		for i in range(0, 3):
-			playerName = 'player' + str(i)
-			nw = RunFastNetwork(playerName)
-			nw.loadNet(startTurn)
-			rfa = RunFastAgent(playerName, nw)
-			nws.append(nw)
-			agents.append(rfa)
-			 
-		env = RunFastEnvironment()
-		exp = Experiment(env, agents)
+def trainDeepNetwork(loopNum=10000, startTurn=0, type='nn'):
+	'''
+	用深度网络来训练Q值
+	'''
+	agents = []
+	winners = {}
+	train_filename = TRAIN[type]
+	# load history match
+	if os.path.isfile(train_filename):
+		with open(train_filename, 'r') as f:
+			winners = pickle.load(f)
+			startTurn = sum([v for i,v in winners.items()]) 
 
-		for i in range(startTurn, startTurn + loopNum):
-			exp.setTurn(i)
-			winner = exp.doEpisode()
-			if winners.has_key(winner):
-				winners[winner] += 1
-			else:
-				winners[winner] = 1
+	# load agents with network
+	for i in range(0, 3):
+		playerName = PLAYER_LIST[type][i]
+		nw = NETWORK[type](playerName)
+		nw.loadNet(playerName, startTurn)
+		rfa = AGENT[type](playerName, nw)
+		agents.append(rfa)
+		 
+	env = RunFastEnvironment()
+	exp = EXPERIMENT[type](env, agents)
 
-		print winners
-		with open('train_winners', 'w') as f:
-			pickle.dump(winners, f)
+	for i in range(startTurn, startTurn + loopNum):
+		if i % 2 == 0:
+			for agent in agents:
+				agent.saveNet()
+			with open(train_filename, 'w') as f:
+				pickle.dump(winners, f)
+		winner = exp.doEpisode()
+		if winners.has_key(winner):
+			winners[winner] += 1
+		else:
+			winners[winner] = 1
+	for agent in agents:
+		agent.saveNet()
+	with open(train_filename, 'w') as f:
+		pickle.dump(winners, f)
 
-	def trainDeepNetwork(loopNum=1000000, startTurn=0):
-		'''
-		用深度网络来训练Q值
-		结果保存在deep_playeri里面，数字为训练的次数
-		胜负结果保存在deep_train_winners里面
-		'''
-		nws = []
-		agents = []
-		winners = {}
+def testQValueNetwork(startTurn=0, loopNum=1000, type=''):
+	agents = []
+	win_nums = {}
+	test_name = PLAYER_LIST[type][0]
+	test_filename = TEST[type]
+	if os.path.isfile(test_filename):
+		with open(test_filename, 'r') as f:
+			win_nums = pickle.load(f)
 
-		# load history match
-		if os.path.isfile('deep_train_winners'):
-			with open('deep_train_winners', 'r') as f:
-				winners = pickle.load(f)
-				startTurn = sum([v for i,v in winners.items()]) + 1
+	for i in range(0, 3):
+		playerName = PLAYER_LIST[type][i]
+		nw = NETWORK[type](playerName)
+		if playerName == test_name:
+			nw.loadNet(playerName, startTurn)
+		rfa = AGENT[type](playerName, nw)
+		agents.append(rfa)
+		 
+	env = RunFastEnvironment()
+	exp = Experiment(env, agents)
 
-		# load agents with network
-		for i in range(0, 3):
-			playerName = 'deep_player' + str(i)
-			nw = RunFastDeepNetwork(playerName)
-			nw.loadNet(startTurn)
-			rfa = RunFastAgent(playerName, nw)
-			nws.append(nw)
-			agents.append(rfa)
-			 
-		# load state network
-		stateName = 'deep_state'
-		stateNetwork = StateNetwork(stateName)
-		if os.path.isfile(stateName):
-			with open(stateName + '/' + str(startTurn), 'r') as f:
-				stateNetwork = pickle.load(f)
-
-		env = RunFastEnvironment()
-		exp = Experiment(env, agents, stateNetwork)
-
-		for i in range(startTurn, startTurn + loopNum):
-			exp.setTurn(i)
-			winner = exp.doEpisode()
-			if winners.has_key(winner):
-				winners[winner] += 1
-			else:
-				winners[winner] = 1
-
-		print winners
-		with open('deep_train_winners', 'w') as f:
-			pickle.dump(winners, f)
-
-	def trainStateTransitionNetwork():
-		pass
-
-	def testQValueNetwork(startTurn=0, loopNum=1000, testName='player0', filename='win_nums', playerNamePrefix='player'):
-		'''
-		其中一个玩家使用训练好的网络，其他两个agent随机出牌，记录胜率
-		winNums = {20000: 57777, 40000:69999,...}
-		startTurn表示训练的神经网络的次数，loopNum表示test的次数
-		'''
-		agents = []
-		winNums = {}
-		if os.path.isfile(filename):
-			with open(filename, 'r') as f:
-				winNums = pickle.load(f)
-
-		print 'loading agents'
-		for i in range(0, 3):
-			playerName = playerNamePrefix + str(i)
-			nw = RunFastDeepNetwork(playerName)
-			if playerName == testName:
-				nw.loadNet(playerName, startTurn)
-			rfa = RunFastAgent(playerName, nw)
-			agents.append(rfa)
-			 
-		env = RunFastEnvironment()
-		exp = Experiment(env, agents)
-
-		print 'set up the experiment'
-
-		for i in range(startTurn, startTurn + loopNum):
-			if not winNums.get(startTurn):
-				winNums[startTurn] = {}
-			testHistory = exp.doTest(testName)
-			for j in range(0,3):
-				playerName = playerNamePrefix + str(j)
-				if not winNums[startTurn].get(playerName):
-					winNums[startTurn][playerName] = testHistory[playerName]
-				else:
-					winNums[startTurn][playerName] += testHistory[playerName]
-			print str(i-startTurn), winNums
-
-		print winNums
-		with open(filename, 'w') as f:
-			pickle.dump(winNums, f)
+	for i in range(startTurn, startTurn + loopNum):
+		if not win_nums.get(startTurn):
+			win_nums[startTurn] = {}
+		testHistory = exp.doTest(test_name)
+		for j in range(0,3):
+			playerName = PLAYER_LIST[type][j]
+			if not win_nums[startTurn].get(playerName):
+				win_nums[startTurn][playerName] = {'point': 0, 'win': 0}
+			win_nums[startTurn][playerName]['point'] += testHistory[playerName]
+			if testHistory['name'] == playerName:
+				win_nums[startTurn][playerName]['win'] += 1
+	with open(test_filename, 'w') as f:
+		pickle.dump(win_nums, f)
 
 if __name__ == '__main__':
-	pass
-	# trainQValueNetwork()
-	# trainDeepNetwork()
-	# for i in range(0,1000000,10000):
-	# 	testQValueNetwork(startTurn=i, loopNum=100000, filename='deep_win_nums', playerNamePrefix='deep_player', testName='deep_player0')
-	# testQValueNetwork(startTurn=10000000, loopNum=100, testName='player1')
+	train = input('input 1 to train, input 0 to test: ')
+	type = raw_input('input the TYPE you want to train/test: ')
+	if train:
+		trainDeepNetwork(type=type, loopNum=100000)
+	else:
+		test_filename = TEST[type]
+		test_name = PLAYER_LIST[type][0]
+		winNums = {0:{}}
+		if os.path.isfile(test_filename):
+			with open(test_filename, 'r') as f:
+				winNums = pickle.load(f)
+		startTurn = max(winNums.keys())
+		for i in range(startTurn, startTurn + 10000, 200):
+			while not os.path.isfile(test_name + '/' + str(i)):
+				print 'waiting for training finish'
+				time.sleep(10)
+			testQValueNetwork(startTurn=i, loopNum=10000, type=type)

@@ -55,57 +55,11 @@ class Experiment():
 			# print agent.name, reward
 			agent.learn(state, reward, type=type)
 
-		# for agent in agents:
-		# 	if agent.controller.turn % 5000 == 0:
-		# 		agent.saveNet()
-
 		self.addTurn()
 
 		self.reset()
 		print winner, ' wins!'
 		return winner
-
-	def doEpisodeWithMemory(self, capacity=10000):
-		'''
-		存储历史纪录，不使用及时的更新，而是从历史纪录中调取纪录进行更新
-		'''
-		winner = ''
-		agents = self.agents
-		env = self.env
-		env.doReadyWork(agents)
-		type = self.type
-
-		while not env.isOver():
-			ct = env.currentTurn
-			ctagent = agents[ct]
-			state = env.getState()
-			reward = env.getReward(ctagent)
-			action = ctagent.getAction(state, type=type)
-			env.doAction(action)
-			# memory = [ctagent.laststate, ctagent.lastaction, reward, state]
-			ctagent.saveMemory(reward, state, action, capacity=capacity)
-			ctagent.learnFromMemory(type=type)
-
-		for agent in agents:
-			state = env.getState()
-			playerCards = agent.getCurrentCards()
-			state['playerCards'] = playerCards
-			if not playerCards:
-				winner = agent.name
-			reward = env.getReward(agent)
-			# memory = [agent.laststate, agent.lastaction, reward, state]
-			agent.saveMemory(reward, state, capacity=capacity)
-			agent.learnFromMemory(type=type)
-
-		# for agent in agents:
-		# 	if agent.controller.turn % 5000 == 0:
-		# 		agent.saveNet()
-
-		self.addTurn()
-
-		self.reset()
-		return winner
-
 
 	def doTest(self, testName):
 		'''
@@ -140,3 +94,50 @@ class Experiment():
 		# print testHistory
 		return testHistory
 
+class ExperimentWithMemory(Experiment):
+
+	def __init__(self, env, agents, type=1, capacity=10000):
+		Experiment.__init__(env, agents)
+		self.capacity = capacity
+
+	def doEpisode(self):
+		'''
+		存储历史纪录，不使用及时的更新，而是从历史纪录中调取纪录进行更新
+		'''
+		winner = ''
+		agents = self.agents
+		env = self.env
+		env.doReadyWork(agents)
+		capacity  = self.capacity
+		type = self.type
+
+		while not env.isOver():
+			ct = env.currentTurn
+			ctagent = agents[ct]
+			state = env.getState()
+			reward = env.getReward(ctagent)
+			action = ctagent.getAction(state, type=type)
+			env.doAction(action)
+			# memory = [ctagent.laststate, ctagent.lastaction, reward, state]
+			ctagent.saveMemory(reward, state, action, capacity=capacity)
+			ctagent.learnFromMemory(type=type)
+
+		for agent in agents:
+			state = env.getState()
+			playerCards = agent.getCurrentCards()
+			state['playerCards'] = playerCards
+			if not playerCards:
+				winner = agent.name
+			reward = env.getReward(agent)
+			# memory = [agent.laststate, agent.lastaction, reward, state]
+			agent.saveMemory(reward, state, capacity=capacity)
+			agent.learnFromMemory(type=type)
+
+		# for agent in agents:
+		# 	if agent.controller.turn % 5000 == 0:
+		# 		agent.saveNet()
+
+		self.addTurn()
+
+		self.reset()
+		return winner
