@@ -46,7 +46,7 @@ def trainDeepNetwork(loopNum=10000, startTurn=0, type='nn'):
 	exp = EXPERIMENT[type](env, agents)
 
 	for i in range(startTurn, startTurn + loopNum):
-		if i % 2 == 0:
+		if i % 100 == 0:
 			for agent in agents:
 				agent.saveNet()
 			with open(train_filename, 'w') as f:
@@ -108,7 +108,7 @@ if __name__ == '__main__':
 			with open(test_filename, 'r') as f:
 				winNums = pickle.load(f)
 		startTurn = max(winNums.keys())
-		for i in range(startTurn, startTurn + 10000, 200):
+		for i in range(startTurn, startTurn + 10000, 100):
 			while not os.path.isfile(test_name + '/' + str(i)):
 				print 'waiting for training finish', i
 				time.sleep(10)
