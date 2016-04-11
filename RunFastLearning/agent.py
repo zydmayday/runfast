@@ -40,6 +40,7 @@ class RunFastAgent(Player):
         self.controller = controller
         self.laststate = None 
         self.lastaction = None
+        self.lastreward = None
         self.alpha = alpha
         self.gamma = gamma
 
@@ -49,6 +50,7 @@ class RunFastAgent(Player):
     def reset(self):
         self.laststate = None 
         self.lastaction = None
+        self.lastreward = None
 
     def getAction(self, state, epsilon=0.1, type=1):
         '''
@@ -76,7 +78,11 @@ class RunFastAgent(Player):
         preCards = state['preCards']
         preType = state['preType']
         isFirst = state['isFirst']
-        cardsCanPlay = self.getCardsCanPlay(preType, preCards, isFirst)
+        playerCards = state['playerCards']
+        # cardsCanPlay = self.getCardsCanPlay(preType, preCards, isFirst)
+        tempPlayer = Player('temp')
+        tempPlayer.cards = playerCards
+        cardsCanPlay = tempPlayer.getCardsCanPlay(preType, preCards, isFirst)
         return cardsCanPlay
 
     def getBestAction(self, state, type=1):
@@ -152,35 +158,35 @@ class RunFastAgent(Player):
                 input[c_n+offset] += 1
             return input
 
-    def learn(self, nextState, reward, lastState = None, lastAction = None, type=1):
+    def learn(self, state, lastreward, lastState = None, lastAction = None, type=1):
         '''
         算出target Qvalue，传给控制器进行学习
         qvalue_n+1 = (1-alpha) * qvalue + alpha*(r + gamma * max(qvalue_next))
         怎么处理最后一次优化：最后一次时，我们获得了终盘的状态和回报，这时候，应该没有max（）的这一项了，因为没有action可走了，所有去掉这一项
         '''
-
-        if lastState and lastAction:
-            self.laststate = lastState
-            self.lastaction = lastAction
+        if not lastState and not lastAction:
+            lastState = self.laststate
+            lastAction = self.lastaction
 
         if self.lastaction == None and self.laststate == None:
             return False
         # print self.laststate
-        input = self.getInput(self.laststate, self.lastaction, type=type)
+        input = self.getInput(lastState, lastAction, type=type)
         qValue = self.controller.getValue(input)
-
         qNextValues = []
-        nextActionsDict = self.getActions(nextState)
-        for naType in nextActionsDict.keys():
-            for a in nextActionsDict[naType]:
-                action = [self.cards[i] for i in a]
-                inp = self.getInput(nextState, action, type=type)
-                qNextValues.append(self.controller.getValue(inp))
+        if state:
+            nextActionsDict = self.getActions(state)
+            for naType in nextActionsDict.keys():
+                for a in nextActionsDict[naType]:
+                    action = [state['playerCards'][i] for i in a]
+                    inp = self.getInput(state, action, type=type)
+                    qNextValues.append(self.controller.getValue(inp))
         maxQ = 0
         if qNextValues:
             maxQ = max(qNextValues)
-        targetValue = (1 - self.alpha) * qValue + self.alpha * (reward + self.gamma * maxQ)
-        print self.name, '(1 - ',self.alpha,') * ',qValue,' + ',self.alpha,' * (',reward,' + ',self.gamma,' * ',maxQ
+
+        targetValue = (1 - self.alpha) * qValue + self.alpha * (lastreward + self.gamma * maxQ)
+        # print self.name, '(1 - ',self.alpha,') * ',qValue,' + ',self.alpha,' * (',lastreward,' + ',self.gamma,' * ',maxQ, ')'
         self.controller.train(input, targetValue)
 
     def saveNet(self):
@@ -198,10 +204,10 @@ class RunFastAgentWithMemory(RunFastAgent):
         RunFastAgent.__init__(self, name, controller)
         self.memories = []
 
-    def saveMemory(self, reward, state, action=None, capacity=10000):
+    def saveMemory(self, lastreward, state, action=None, capacity=10000):
         '''
         用于存储之前的行动状态，用于之后的更新
-        memory [laststate, lastaction, reward, nextState]
+        memory [laststate, lastaction, lastreward, nextState]
         只存储一定的量，超过这个量，就把之前的记录给删除
         '''
         if len(self.memories) >= capacity:
@@ -210,7 +216,7 @@ class RunFastAgentWithMemory(RunFastAgent):
             self.lastaction = action
             self.laststate = state
         else:
-            memory = [self.laststate, self.lastaction, reward, state]
+            memory = (self.laststate, self.lastaction, lastreward, state)
             self.memories.append(memory)
             self.lastaction = action
             self.laststate = state

@@ -23,6 +23,8 @@ class RunFastNetwork():
 		trainer = BackpropTrainer(self.net, self.ds)
 		trainer.train()
 
+	def addLearner(self, learner):
+		self.learner = learner
 
 	def saveNet(self, filename=''):
 		with open(self.name  + '/' + str(self.turn), 'w') as f:

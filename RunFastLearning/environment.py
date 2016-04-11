@@ -40,11 +40,11 @@ class RunFastEnvironment(RunFast):
 		'''
 		state = {'preCards': [], 'preType': [], 'isFirst': False}
 		currentPlayer = self.players[self.currentTurn]
-		state['playerCards'] = currentPlayer.getCurrentCards()
-		state['playedCards'] = self.havePlayed
+		state['playerCards'] = currentPlayer.getCurrentCards()[:]
+		state['playedCards'] = self.havePlayed[:]
 		if self.currentTurn != self.whoPlayed:
-			state['preCards'] = self.currentCard
-			state['preType'] = self.currentType
+			state['preCards'] = self.currentCard[:]
+			state['preType'] = self.currentType[:]
 		if self.whoPlayed == -1:
 			state['isFirst'] = True
 
@@ -54,6 +54,7 @@ class RunFastEnvironment(RunFast):
 		'''
 		根据agent传来的action来进行实际行动
 		并且返回新的状态和reward给agent
+		如果游戏结束了，就只是改变一下玩家的turn
 		'''
 		ct = self.currentTurn
 		playedCards = action['cards']

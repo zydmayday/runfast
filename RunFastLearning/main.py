@@ -99,7 +99,7 @@ if __name__ == '__main__':
 	train = input('input 1 to train, input 0 to test: ')
 	type = raw_input('input the TYPE you want to train/test: ')
 	if train:
-		trainDeepNetwork(type=type, loopNum=100000)
+		trainDeepNetwork(type=type, loopNum=10000)
 	else:
 		test_filename = TEST[type]
 		test_name = PLAYER_LIST[type][0]
@@ -110,6 +110,6 @@ if __name__ == '__main__':
 		startTurn = max(winNums.keys())
 		for i in range(startTurn, startTurn + 10000, 200):
 			while not os.path.isfile(test_name + '/' + str(i)):
-				print 'waiting for training finish'
+				print 'waiting for training finish', i
 				time.sleep(10)
 			testQValueNetwork(startTurn=i, loopNum=10000, type=type)
