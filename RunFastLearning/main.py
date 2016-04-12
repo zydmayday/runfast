@@ -45,7 +45,7 @@ def trainDeepNetwork(loopNum=10000, startTurn=0, type='nn'):
 	env = RunFastEnvironment()
 	exp = EXPERIMENT[type](env, agents)
 
-	for i in range(startTurn, startTurn + loopNum):
+	for i in range(startTurn, loopNum):
 		if i % 100 == 0:
 			for agent in agents:
 				agent.saveNet()
@@ -81,7 +81,7 @@ def testQValueNetwork(startTurn=0, loopNum=1000, type=''):
 	env = RunFastEnvironment()
 	exp = Experiment(env, agents)
 
-	for i in range(startTurn, startTurn + loopNum):
+	for i in range(loopNum):
 		if not win_nums.get(startTurn):
 			win_nums[startTurn] = {}
 		testHistory = exp.doTest(test_name)
@@ -98,8 +98,9 @@ def testQValueNetwork(startTurn=0, loopNum=1000, type=''):
 if __name__ == '__main__':
 	train = input('input 1 to train, input 0 to test: ')
 	type = raw_input('input the TYPE you want to train/test: ')
+	loopNum = 10000
 	if train:
-		trainDeepNetwork(type=type, loopNum=10000)
+		trainDeepNetwork(type=type, loopNum=loopNum)
 	else:
 		test_filename = TEST[type]
 		test_name = PLAYER_LIST[type][0]
@@ -108,7 +109,9 @@ if __name__ == '__main__':
 			with open(test_filename, 'r') as f:
 				winNums = pickle.load(f)
 		startTurn = max(winNums.keys())
-		for i in range(startTurn, startTurn + 10000, 100):
+		if startTurn:
+			startTurn = startTurn + 100
+		for i in range(startTurn, loopNum, 100):
 			while not os.path.isfile(test_name + '/' + str(i)):
 				# print 'waiting for training finish', i
 				time.sleep(10)

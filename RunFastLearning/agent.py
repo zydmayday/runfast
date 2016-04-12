@@ -220,8 +220,6 @@ class RunFastAgentWithMemory(RunFastAgent):
             self.memories.append(memory)
             self.lastaction = action
             self.laststate = state
-        for m in self.memories:
-            print m
 
 
     def learnFromMemory(self, learn_num=10, type=1):
