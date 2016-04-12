@@ -45,26 +45,6 @@ class RunFastNetwork():
 	def getValue(self, input):
 		return self.net.activate(input)
 
-	# def buildNetwork(self, inputNum, hiddenNum, outNum):
-	# 	n = FeedForwardNetwork()
-	# 	inLayer = LinearLayer(inputNum)
-	# 	hiddenLayer = SigmoidLayer(hiddenNum)
-	# 	outLayer = LinearLayer(outNum)
-	# 	n.addInputModule(inLayer)
-	# 	n.addModule(hiddenLayer)
-	# 	n.addOutputModule(outLayer)
-	# 	in_to_hidden = FullConnection(inLayer, hiddenLayer)
-	# 	n.addConnection(in_to_hidden)
-	# 	hidden_to_out = FullConnection(hiddenLayer, outLayer)
-	# 	n.addConnection(in_to_hidden)
-	# 	n.addConnection(hidden_to_out)
-	# 	n.sortModules()
-
-	# 	self.layers['in_to_hidden'] = in_to_hidden
-	# 	self.layers['hidden_to_out'] = hidden_to_out
-	# 	return n
-		# self.net = n
-
 class RunFastDeepNetwork(RunFastNetwork):
 
 	def __init__(self, name='', inputNum=192, hidden1Num=192, hidden2Num=192, hidden3Num=192, outNum=1):

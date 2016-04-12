@@ -111,7 +111,7 @@ if __name__ == '__main__':
 		startTurn = max(winNums.keys())
 		print startTurn
 		time.sleep(1)
-		for i in range(startTurn + 200, startTurn + 10000, 200):
+		for i in range(startTurn + 200, startTurn + 30000, 200):
 			while not os.path.isfile(testName + '/' + str(i)):
 				print 'waiting for training finish'
 				time.sleep(10)

@@ -110,6 +110,6 @@ if __name__ == '__main__':
 		startTurn = max(winNums.keys())
 		for i in range(startTurn, startTurn + 10000, 100):
 			while not os.path.isfile(test_name + '/' + str(i)):
-				print 'waiting for training finish', i
+				# print 'waiting for training finish', i
 				time.sleep(10)
 			testQValueNetwork(startTurn=i, loopNum=10000, type=type)

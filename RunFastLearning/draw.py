@@ -1,18 +1,13 @@
 import pickle
 import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
+import main
 
+IMAGE = {'dn': 'test_dn.png', 'dn_wm': 'test_dn_wm.png', 'nn': 'test_nn.png', 'nn_wm': 'test_nn_wm.png'}
 
 if __name__ == '__main__':
-    type = 3
-    PLAYER_KEY = ['nn_train1', 'nn_train2', 'nn_train3']
-    test_file = 'test_winners_nn'
-    if type == 2:
-        PLAYER_KEY = ['dn_train1', 'dn_train2', 'dn_train3']
-        test_file = 'test_winners_dn'
-    elif type == 3:
-        PLAYER_KEY = ['dn_memory_train1', 'dn_memory_train2', 'dn_memory_train3']
-        test_file = 'test_winners_dn_with_memory'
+    type = raw_input('input the TYPE of the test: ')
+    test_file = main.TEST[type]
     test_data = pickle.load(open(test_file))
     # print test_data
     x_axis_list = test_data.keys()
@@ -22,10 +17,10 @@ if __name__ == '__main__':
     y3_list = []
     for k in x_axis_list:
         item = test_data[k]
-        match_num = item[PLAYER_KEY[0]]['win'] + item[PLAYER_KEY[1]]['win'] + item[PLAYER_KEY[2]]['win']
-        y1_list.append(float(item[PLAYER_KEY[0]]['win']) / match_num)
-        y2_list.append(float(item[PLAYER_KEY[1]]['win']) / match_num)
-        y3_list.append(float(item[PLAYER_KEY[2]]['win']) / match_num)
+        match_num = item[main.PLAYER_LIST[type][0]]['win'] + item[main.PLAYER_LIST[type][1]]['win'] + item[main.PLAYER_LIST[type][2]]['win']
+        y1_list.append(float(item[main.PLAYER_LIST[type][0]]['win']))
+        y2_list.append(float(item[main.PLAYER_LIST[type][1]]['win']))
+        y3_list.append(float(item[main.PLAYER_LIST[type][2]]['win']))
 
     # red_patch = mpatches.Patch(color='red', label='trainer1')
     # blue_patch = mpatches.Patch(color='blue', label='trainer2')
@@ -37,9 +32,4 @@ if __name__ == '__main__':
     plt.plot(x_axis_list, y3_list, 'g-', label='agent3')
     legend = plt.legend(loc='upper center', shadow=True)
     # plt.show()
-    if type == 1:
-        plt.savefig('nn_test_win_percent.png')
-    elif type  == 2:
-        plt.savefig('dn_test_win_percent.png')
-    elif type == 3:
-        plt.savefig('dn_memory_test_win_percent.png')
+    plt.savefig(IMAGE[type])

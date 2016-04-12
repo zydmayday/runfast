@@ -114,7 +114,7 @@ def main1():
 			with open(testFileName, 'r') as f:
 				winNums = pickle.load(f)
 		startTurn = max(winNums.keys())
-		for i in range(startTurn + 200, startTurn + 10000, 200):
+		for i in range(startTurn + 200, startTurn + 30000, 200):
 			while not os.path.isfile(testName + '/' + str(i)):
 				print 'not found ', testName + '/' + str(i) ,'waiting for training finish'
 				time.sleep(10)
