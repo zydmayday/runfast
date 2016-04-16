@@ -104,6 +104,7 @@ class ExperimentWithMemory(Experiment):
 		self.capacity = capacity
 
 	def doOneTurnWithMemory(self, capacity=10000):
+		print 'do exp with memory'
 		env = self.env
 		agents = self.agents
 		ct = env.currentTurn

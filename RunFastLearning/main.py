@@ -52,6 +52,7 @@ def trainDeepNetwork(loopNum=10000, startTurn=0, type='nn'):
 			with open(train_filename, 'w') as f:
 				pickle.dump(winners, f)
 		winner = exp.doEpisode()
+		print winner
 		if winners.has_key(winner):
 			winners[winner] += 1
 		else:
